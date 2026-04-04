@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MOC Company - Sistema de Transporte</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',Arial,sans-serif;}
+body{background:#f4f6f9;}
+
+/* TOPBAR */
+.topbar{height:48px;background:#1a2a4a;display:flex;align-items:center;justify-content:space-between;padding:0 16px;position:fixed;top:0;left:0;right:0;z-index:100;}
+.topbar-left{display:flex;align-items:center;gap:12px;}
+.topbar-logo{font-size:18px;font-weight:700;color:white;letter-spacing:1px;}
+.topbar-logo span{color:#4fa3e0;}
+.topbar-sub{font-size:10px;color:#aac4e0;letter-spacing:1px;text-transform:uppercase;}
+.topbar-right{display:flex;align-items:center;gap:16px;}
+.topbar-user{font-size:12px;color:#aac4e0;}
+.topbar-module{font-size:11px;background:#2d4a7a;color:#7eb8e8;padding:3px 10px;border-radius:4px;}
+.topbar-btn{font-size:11px;color:#aac4e0;background:none;border:none;cursor:pointer;padding:4px 8px;}
+.topbar-btn:hover{color:white;}
+
+/* LAYOUT */
+.layout{display:flex;margin-top:48px;height:calc(100vh - 48px);min-height:560px;}
+
+/* SIDEBAR */
+.sidebar{width:210px;min-width:210px;background:#1e2d4d;display:flex;flex-direction:column;overflow-y:auto;}
+.sidebar-section{padding:6px 0;}
+.sidebar-sep{height:0.5px;background:#2d3f63;margin:4px 0;}
+.nav-group-header{display:flex;align-items:center;justify-content:space-between;padding:8px 14px 4px;cursor:pointer;user-select:none;}
+.nav-group-label{font-size:10px;color:#7ea8d4;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;}
+.nav-arrow{font-size:10px;color:#7ea8d4;transition:transform 0.2s;}
+.nav-arrow.open{transform:rotate(90deg);}
+.nav-children{overflow:hidden;}
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 14px 7px 20px;cursor:pointer;font-size:12px;color:#b0c8e8;transition:background 0.15s;}
+.nav-item:hover{background:#2a3f6a;color:white;}
+.nav-item.active{background:#2563a8;color:white;font-weight:500;}
+.nav-dot{width:5px;height:5px;border-radius:50%;background:#4fa3e0;flex-shrink:0;}
+
+/* SIDEBAR FOOTER */
+.sidebar-footer{margin-top:auto;border-top:0.5px solid #2d3f63;padding:10px 14px;}
+.sidebar-date{font-size:10px;color:#7ea8d4;margin-bottom:4px;}
+.sidebar-date-val{font-size:11px;color:#b0c8e8;}
+.sidebar-version{font-size:10px;color:#4a6080;margin-top:6px;}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+
+/* BREADCRUMB */
+.breadcrumb{background:white;border-bottom:0.5px solid #dde3ec;padding:6px 20px;font-size:11px;color:#6b7a99;display:flex;align-items:center;gap:6px;}
+.breadcrumb-sep{color:#c0c8d8;}
+.breadcrumb-current{color:#2563a8;font-weight:500;}
+
+/* PAGE */
+.page-wrap{flex:1;overflow-y:auto;padding:16px 20px;background:#f0f3f8;}
+.page-content{display:none;}
+.page-content.active{display:block;}
+
+/* DASHBOARD CARDS */
+.dash-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px;}
+.dash-card{background:white;border:0.5px solid #dde3ec;border-radius:8px;padding:16px 18px;}
+.dash-card-label{font-size:11px;color:#6b7a99;margin-bottom:8px;}
+.dash-card-value{font-size:26px;font-weight:600;color:#1a2a4a;}
+.dash-card-sub{font-size:11px;color:#6b7a99;margin-top:4px;}
+
+.dash-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+
+/* CARDS */
+.card{background:white;border:0.5px solid #dde3ec;border-radius:8px;padding:16px 18px;margin-bottom:14px;}
+.card-head{font-size:12px;font-weight:600;color:#1a2a4a;padding-bottom:10px;border-bottom:0.5px solid #eef0f5;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.04em;}
+
+/* TABLE */
+.tbl-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px;flex-wrap:wrap;}
+.tbl-filters{display:flex;align-items:center;gap:8px;}
+.tbl-search{padding:6px 10px;font-size:12px;border:0.5px solid #c8d0df;border-radius:5px;background:white;color:#1a2a4a;width:180px;}
+.tbl-select{padding:6px 8px;font-size:12px;border:0.5px solid #c8d0df;border-radius:5px;background:white;color:#1a2a4a;}
+.btn-filter{padding:6px 14px;font-size:12px;background:#2563a8;color:white;border:none;border-radius:5px;cursor:pointer;}
+.btn-filter:hover{background:#1a4a8a;}
+.btn-clear{padding:6px 12px;font-size:12px;background:white;color:#6b7a99;border:0.5px solid #c8d0df;border-radius:5px;cursor:pointer;}
+.btn-new{padding:6px 14px;font-size:12px;background:#2563a8;color:white;border:none;border-radius:5px;cursor:pointer;white-space:nowrap;}
+.btn-export{padding:6px 12px;font-size:12px;background:white;color:#2563a8;border:0.5px solid #2563a8;border-radius:5px;cursor:pointer;}
+
+.counters{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
+.counter-box{display:flex;align-items:center;gap:6px;background:#f0f3f8;border-radius:6px;padding:6px 12px;}
+.counter-icon{width:22px;height:22px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;}
+.counter-icon.total{background:#2563a8;}
+.counter-icon.hab{background:#22a06b;}
+.counter-icon.inhab{background:#e5534b;}
+.counter-icon.ret{background:#e8a020;}
+.counter-label{font-size:11px;color:#6b7a99;}
+.counter-val{font-size:14px;font-weight:600;color:#1a2a4a;}
+
+.tbl-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{padding:8px 10px;text-align:left;font-size:11px;color:#6b7a99;font-weight:600;border-bottom:0.5px solid #dde3ec;background:#f8f9fc;white-space:nowrap;}
+td{padding:8px 10px;border-bottom:0.5px solid #f0f3f8;color:#2d3f5e;white-space:nowrap;}
+tr:hover td{background:#f5f7fb;}
+.tbl-empty{text-align:center;padding:40px;color:#aab0c0;font-size:13px;}
+.tbl-empty-icon{font-size:28px;margin-bottom:8px;opacity:0.4;}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;font-size:10px;font-weight:600;padding:3px 8px;border-radius:99px;}
+.b-green{background:#d3f4e7;color:#1a7a50;}
+.b-blue{background:#dceeff;color:#1a4a8a;}
+.b-amber{background:#fef3d0;color:#8a5a00;}
+.b-red{background:#ffe0de;color:#8a1a1a;}
+.b-gray{background:#e8eaf0;color:#4a5568;}
+
+/* ACTIONS */
+.act-btn{background:none;border:none;cursor:pointer;padding:3px 5px;font-size:14px;color:#6b7a99;}
+.act-btn:hover{color:#2563a8;}
+
+/* ALERT ITEMS */
+.alert-row{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:0.5px solid #f0f3f8;}
+.alert-row:last-child{border-bottom:none;}
+.alert-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.dot-r{background:#e5534b;}
+.dot-a{background:#e8a020;}
+.alert-text{font-size:12px;color:#2d3f5e;line-height:1.4;}
+.alert-sub{font-size:11px;color:#6b7a99;margin-top:2px;}
+
+/* MANIFEST ITEMS */
+.man-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:0.5px solid #f0f3f8;}
+.man-row:last-child{border-bottom:none;}
+.man-num{font-size:12px;font-weight:600;color:#1a2a4a;}
+.man-sub{font-size:11px;color:#6b7a99;margin-top:2px;}
+
+/* LOGIN */
+.login-wrap{min-height:600px;display:flex;align-items:center;justify-content:center;background:#f0f3f8;}
+.login-box{background:white;border:0.5px solid #dde3ec;border-radius:10px;padding:36px 32px;width:340px;}
+.login-brand{text-align:center;margin-bottom:28px;}
+.login-logo-box{width:52px;height:52px;background:#1a2a4a;border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:22px;font-weight:700;color:white;}
+.login-name{font-size:16px;font-weight:700;color:#1a2a4a;}
+.login-desc{font-size:11px;color:#6b7a99;margin-top:3px;}
+.f-label{font-size:11px;color:#6b7a99;margin-bottom:5px;display:block;}
+.f-input{width:100%;padding:9px 12px;font-size:13px;border:0.5px solid #c8d0df;border-radius:6px;color:#1a2a4a;margin-bottom:12px;}
+.f-input:focus{outline:none;border-color:#2563a8;}
+.btn-login{width:100%;padding:10px;background:#2563a8;color:white;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;margin-top:4px;}
+.btn-login:hover{background:#1a4a8a;}
+.login-hint{font-size:11px;color:#aab0c0;text-align:center;margin-top:14px;}
+
+/* RNDC STATUS */
+.rndc-stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+.rndc-stat{background:#f0f3f8;border-radius:7px;padding:14px;text-align:center;}
+.rndc-stat-val{font-size:24px;font-weight:700;}
+.rndc-stat-lbl{font-size:11px;color:#6b7a99;margin-top:2px;}
+.rndc-green{color:#22a06b;}
+.rndc-amber{color:#e8a020;}
+.rndc-red{color:#e5534b;}
+
+/* MODULE QUICK */
+.mod-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:4px;}
+.mod-btn{background:#f0f3f8;border:0.5px solid #dde3ec;border-radius:8px;padding:16px 10px;text-align:center;cursor:pointer;transition:background 0.15s;}
+.mod-btn:hover{background:#e4eaf5;border-color:#2563a8;}
+.mod-icon{font-size:22px;margin-bottom:6px;}
+.mod-name{font-size:11px;font-weight:600;color:#1a2a4a;}
+</style>
+
+<div id="loginScreen">
+<div class="login-wrap">
+  <div class="login-box">
+    <div class="login-brand">
+      <div class="login-logo-box">M</div>
+      <div class="login-name">MOC Company</div>
+      <div class="login-desc">Software de transporte de carga</div>
+    </div>
+    <label class="f-label">Correo / Usuario</label>
+    <input class="f-input" type="text" id="uInput" placeholder="usuario@moccompany.com" />
+    <label class="f-label">Contraseña</label>
+    <input class="f-input" type="password" id="pInput" placeholder="••••••••" />
+    <button class="btn-login" onclick="doLogin()">Ingresar</button>
+    <div class="login-hint">Demo — ingresa con cualquier usuario y contraseña</div>
+  </div>
+</div>
+</div>
+
+<div id="appScreen" style="display:none;">
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div>
+      <div class="topbar-logo">MOC <span>Company</span></div>
+      <div class="topbar-sub">Software de transporte</div>
+    </div>
+    <div class="topbar-module" id="topModule">Módulo: Operaciones</div>
+  </div>
+  <div class="topbar-right">
+    <span class="topbar-user" id="topUser">Bienvenido, ADMIN</span>
+    <button class="topbar-btn" onclick="doLogout()">Cerrar sesión</button>
+  </div>
+</div>
+
+<div class="layout">
+
+<div class="sidebar">
+  <div class="sidebar-section">
+    <div class="nav-group-header" onclick="toggleGroup('g-herr')">
+      <span class="nav-group-label">Herramientas</span>
+      <span class="nav-arrow open" id="arr-g-herr">&#9658;</span>
+    </div>
+    <div class="nav-children" id="g-herr">
+      <div class="nav-item" onclick="go('vencimientos','Vencimientos','Herramientas')"><span class="nav-dot"></span>Alerta de vencimientos</div>
+      <div class="nav-item" onclick="go('estados','Control de estados','Herramientas')"><span class="nav-dot"></span>Control de estados</div>
+      <div class="nav-item" onclick="go('ministerio','Envío al ministerio','Herramientas')"><span class="nav-dot"></span>Envío masivo al ministerio</div>
+      <div class="nav-item" onclick="go('cumplidos','Gestión de cumplidos','Herramientas')"><span class="nav-dot"></span>Gestión de cumplidos</div>
+      <div class="nav-item" onclick="go('paqueteo','Planillar paqueteo','Herramientas')"><span class="nav-dot"></span>Planillar paqueteo</div>
+      <div class="nav-item" onclick="go('seguimiento','Seguimiento de viajes','Herramientas')"><span class="nav-dot"></span>Seguimiento de viajes</div>
+      <div class="nav-item" onclick="go('tablero','Tablero de control','Herramientas')"><span class="nav-dot"></span>Tablero de control</div>
+    </div>
+  </div>
+
+  <div class="sidebar-sep"></div>
+
+  <div class="sidebar-section">
+    <div class="nav-group-header" onclick="toggleGroup('g-param')">
+      <span class="nav-group-label">Parámetros</span>
+      <span class="nav-arrow open" id="arr-g-param">&#9658;</span>
+    </div>
+    <div class="nav-children" id="g-param">
+      <div class="nav-item" onclick="go('catalogos','Catálogos','Parámetros')"><span class="nav-dot"></span>Catálogos</div>
+      <div class="nav-item" onclick="go('operaciones-param','Operaciones','Parámetros')"><span class="nav-dot"></span>Operaciones</div>
+      <div class="nav-item" onclick="go('otros-costos','Otros costos','Parámetros')"><span class="nav-dot"></span>Otros costos</div>
+      <div class="nav-item" onclick="go('pronto-pago','Pronto pago','Parámetros')"><span class="nav-dot"></span>Pronto pago</div>
+      <div class="nav-item" onclick="go('puntos-control','Puntos de control','Parámetros')"><span class="nav-dot"></span>Puntos de control</div>
+      <div class="nav-item" onclick="go('rutas-control','Rutas de control','Parámetros')"><span class="nav-dot"></span>Rutas de control</div>
+    </div>
+  </div>
+
+  <div class="sidebar-sep"></div>
+
+  <div class="sidebar-section">
+    <div class="nav-group-header" onclick="toggleGroup('g-trans')">
+      <span class="nav-group-label">Transporte</span>
+      <span class="nav-arrow open" id="arr-g-trans">&#9658;</span>
+    </div>
+    <div class="nav-children" id="g-trans">
+      <div class="nav-item" onclick="go('aprobaciones','Aprobaciones','Transporte')"><span class="nav-dot"></span>Aprobaciones</div>
+      <div class="nav-item" onclick="go('vehiculos','Vehículos','Transporte')"><span class="nav-dot"></span>Vehículos</div>
+      <div class="nav-item" onclick="go('ordenes','Orden de cargue','Transporte')"><span class="nav-dot"></span>Orden de cargue</div>
+      <div class="nav-item" onclick="go('manifiestos','Manifiestos','Transporte')"><span class="nav-dot"></span>Manifiestos</div>
+      <div class="nav-item" onclick="go('remesas','Remesas','Transporte')"><span class="nav-dot"></span>Remesas</div>
+      <div class="nav-item" onclick="go('anticipos','Anticipos','Transporte')"><span class="nav-dot"></span>Anticipos</div>
+    </div>
+  </div>
+
+  <div class="sidebar-sep"></div>
+
+  <div class="sidebar-section">
+    <div class="nav-group-header" onclick="toggleGroup('g-ter')">
+      <span class="nav-group-label">Terceros</span>
+      <span class="nav-arrow open" id="arr-g-ter">&#9658;</span>
+    </div>
+    <div class="nav-children" id="g-ter">
+      <div class="nav-item" onclick="go('propietarios','Propietarios','Terceros')"><span class="nav-dot"></span>Propietarios</div>
+      <div class="nav-item" onclick="go('conductores','Conductores','Terceros')"><span class="nav-dot"></span>Conductores</div>
+    </div>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-date">FECHA DEL SISTEMA</div>
+    <div class="sidebar-date-val" id="sysDate"></div>
+    <div class="sidebar-version">v 1.0.0</div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="breadcrumb">
+    <span>Dashboard</span>
+    <span class="breadcrumb-sep">›</span>
+    <span id="bc-section">Operaciones</span>
+    <span class="breadcrumb-sep">›</span>
+    <span class="breadcrumb-current" id="bc-page">Herramientas</span>
+  </div>
+
+  <div class="page-wrap">
+
+    <!-- VEHÍCULOS -->
+    <div class="page-content" id="page-vehiculos">
+      <div class="card">
+        <div class="card-head">Vehículos</div>
+        <div class="tbl-toolbar">
+          <div class="tbl-filters">
+            <input class="tbl-search" placeholder="Buscar..." />
+            <select class="tbl-select"><option>Estado: Todos</option><option>Habilitado</option><option>Inhabilitado</option><option>Retirado</option></select>
+            <button class="btn-clear">✕ Limpiar</button>
+            <button class="btn-filter">Filtrar</button>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn-export">Exportar</button>
+            <button class="btn-new">+ Nuevo vehículo</button>
+          </div>
+        </div>
+        <div class="counters">
+          <div class="counter-box"><div class="counter-icon total">≡</div><div><div class="counter-label">Total</div><div class="counter-val">0</div></div></div>
+          <div class="counter-box"><div class="counter-icon hab">✓</div><div><div class="counter-label">Habilitados</div><div class="counter-val">0</div></div></div>
+          <div class="counter-box"><div class="counter-icon inhab">✕</div><div><div class="counter-label">Inhabilitados</div><div class="counter-val">0</div></div></div>
+          <div class="counter-box"><div class="counter-icon ret">↩</div><div><div class="counter-label">Retirados</div><div class="counter-val">0</div></div></div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Placa</th><th>Clase</th><th>Marca</th><th>Línea</th><th>Color</th><th>Propietario</th><th>Tenedor</th><th>Conductor</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <tbody><tr><td colspan="10" class="tbl-empty"><div class="tbl-empty-icon">🚛</div><div>Sin registros encontrados</div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONDUCTORES -->
+    <div class="page-content" id="page-conductores">
+      <div class="card">
+        <div class="card-head">Conductores</div>
+        <div class="tbl-toolbar">
+          <div class="tbl-filters">
+            <input class="tbl-search" placeholder="Buscar..." />
+            <select class="tbl-select"><option>Estado: Todos</option><option>Activo</option><option>Inactivo</option><option>Retirado</option></select>
+            <button class="btn-clear">✕ Limpiar</button>
+            <button class="btn-filter">Filtrar</button>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn-export">Exportar</button>
+            <button class="btn-new">+ Nuevo conductor</button>
+          </div>
+        </div>
+        <div class="counters">
+          <div class="counter-box"><div class="counter-icon total">≡</div><div><div class="counter-label">Total</div><div class="counter-val">0</div></div></div>
+          <div class="counter-box"><div class="counter-icon hab">✓</div><div><div class="counter-label">Activos</div><div class="counter-val">0</div></div></div>
+          <div class="counter-box"><div class="counter-icon inhab">✕</div><div><div class="counter-label">Inactivos</div><div class="counter-val">0</div></div></div>
+          <div class="counter-box"><div class="counter-icon ret">↩</div><div><div class="counter-label">Retirados</div><div class="counter-val">0</div></div></div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Conductor</th><th>Cédula</th><th>Teléfono</th><th>Licencia</th><th>Categoría</th><th>Placa asignada</th><th>Fecha ingreso</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <tbody><tr><td colspan="9" class="tbl-empty"><div class="tbl-empty-icon">👤</div><div>Sin registros encontrados</div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROPIETARIOS -->
+    <div class="page-content" id="page-propietarios">
+      <div class="card">
+        <div class="card-head">Propietarios</div>
+        <div class="tbl-toolbar">
+          <div class="tbl-filters">
+            <input class="tbl-search" placeholder="Buscar..." />
+            <select class="tbl-select"><option>Estado: Todos</option><option>Habilitado</option><option>Inhabilitado</option></select>
+            <button class="btn-clear">✕ Limpiar</button>
+            <button class="btn-filter">Filtrar</button>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn-export">Exportar</button>
+            <button class="btn-new">+ Nuevo propietario</button>
+          </div>
+        </div>
+        <div class="counters">
+          <div class="counter-box"><div class="counter-icon total">≡</div><div><div class="counter-label">Total</div><div class="counter-val">0</div></div></div>
+          <div class="counter-box"><div class="counter-icon hab">✓</div><div><div class="counter-label">Habilitados</div><div class="counter-val">0</div></div></div>
+          <div class="counter-box"><div class="counter-icon inhab">✕</div><div><div class="counter-label">Inhabilitados</div><div class="counter-val">0</div></div></div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Propietario</th><th>NIT / Cédula</th><th>Email</th><th>Teléfono</th><th>Fecha creación</th><th>Fecha retiro</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <tbody><tr><td colspan="8" class="tbl-empty"><div class="tbl-empty-icon">🏢</div><div>Sin registros encontrados</div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ÓRDENES -->
+    <div class="page-content" id="page-ordenes">
+      <div class="card">
+        <div class="card-head">Orden de cargue</div>
+        <div class="tbl-toolbar">
+          <div class="tbl-filters">
+            <input class="tbl-search" placeholder="Buscar..." />
+            <select class="tbl-select"><option>Agencia: Todas</option></select>
+            <select class="tbl-select"><option>Estado: Todos</option><option>Abierta</option><option>Cancelada</option></select>
+            <input type="date" class="tbl-select" />
+            <button class="btn-clear">✕ Limpiar</button>
+            <button class="btn-filter">Filtrar</button>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn-export">Exportar</button>
+            <button class="btn-new">+ Nueva orden</button>
+          </div>
+        </div>
+        <div class="counters">
+          <div class="counter-box"><div class="counter-icon total">≡</div><div><div class="counter-label">Total órdenes</div><div class="counter-val">0</div></div></div>
+          <div class="counter-box"><div class="counter-icon hab">✓</div><div><div class="counter-label">Abiertas</div><div class="counter-val">0</div></div></div>
+          <div class="counter-box"><div class="counter-icon inhab">✕</div><div><div class="counter-label">Canceladas</div><div class="counter-val">0</div></div></div>
+          <div class="counter-box"><div class="counter-icon ret">↩</div><div><div class="counter-label">Anuladas</div><div class="counter-val">0</div></div></div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Agencia</th><th>No. Orden</th><th>Fecha</th><th>Cliente</th><th>Vehículo</th><th>Conductor</th><th>Origen</th><th>Destino</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <tbody><tr><td colspan="10" class="tbl-empty"><div class="tbl-empty-icon">📋</div><div>Sin datos encontrados, selecciona otros filtros</div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- MANIFIESTOS -->
+    <div class="page-content" id="page-manifiestos">
+      <div class="card">
+        <div class="card-head">Manifiestos</div>
+        <div class="tbl-toolbar">
+          <div class="tbl-filters">
+            <input class="tbl-search" placeholder="Buscar..." />
+            <select class="tbl-select"><option>Agencia: Todas</option></select>
+            <select class="tbl-select"><option>Estado: Todos</option><option>En tránsito</option><option>Cumplido</option><option>Anulado</option><option>Liquidado</option></select>
+            <input type="date" class="tbl-select" />
+            <button class="btn-clear">✕ Limpiar</button>
+            <button class="btn-filter">Filtrar</button>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn-export">Exportar</button>
+            <button class="btn-new">+ Nuevo manifiesto</button>
+          </div>
+        </div>
+        <div class="counters">
+          <div class="counter-box"><div class="counter-icon total">≡</div><div><div class="counter-label">Total</div><div class="counter-val">0</div></div></div>
+          <div class="counter-box"><div class="counter-icon hab" style="background:#2563a8;">→</div><div><div class="counter-label">En tránsito</div><div class="counter-val">0</div></div></div>
+          <div class="counter-box"><div class="counter-icon hab">✓</div><div><div class="counter-label">Cumplidos</div><div class="counter-val">0</div></div></div>
+          <div class="counter-box"><div class="counter-icon inhab">✕</div><div><div class="counter-label">Anulados</div><div class="counter-val">0</div></div></div>
+          <div class="counter-box"><div class="counter-icon ret">$</div><div><div class="counter-label">Liquidados</div><div class="counter-val">0</div></div></div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Manifiesto</th><th>Agencia</th><th>Fecha</th><th>Nombre cliente</th><th>Identificación</th><th>Vehículo</th><th>Origen</th><th>Destino</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <tbody><tr><td colspan="10" class="tbl-empty"><div class="tbl-empty-icon">📄</div><div>Sin datos encontrados, selecciona otros filtros</div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- REMESAS -->
+    <div class="page-content" id="page-remesas">
+      <div class="card">
+        <div class="card-head">Remesas</div>
+        <div class="tbl-toolbar">
+          <div class="tbl-filters">
+            <input class="tbl-search" placeholder="Buscar..." />
+            <select class="tbl-select"><option>Agencia: Todas</option></select>
+            <select class="tbl-select"><option>Estado: Todos</option><option>Planillada</option><option>Completada</option><option>Anulada</option></select>
+            <input type="date" class="tbl-select" />
+            <button class="btn-clear">✕ Limpiar</button>
+            <button class="btn-filter">Filtrar</button>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn-export">Exportar</button>
+            <button class="btn-new">+ Nueva remesa</button>
+          </div>
+        </div>
+        <div class="counters">
+          <div class="counter-box"><div class="counter-icon total">≡</div><div><div class="counter-label">Total remesas</div><div class="counter-val">0</div></div></div>
+          <div class="counter-box"><div class="counter-icon hab">✓</div><div><div class="counter-label">Facturadas</div><div class="counter-val">0</div></div></div>
+          <div class="counter-box"><div class="counter-icon ret" style="background:#2563a8;">P</div><div><div class="counter-label">Planilladas</div><div class="counter-val">0</div></div></div>
+          <div class="counter-box"><div class="counter-icon inhab">✕</div><div><div class="counter-label">Anuladas</div><div class="counter-val">0</div></div></div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Remesa</th><th>Manifiesto</th><th>Nombre cliente</th><th>Identificación</th><th>Vehículo</th><th>Agencia</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <tbody><tr><td colspan="9" class="tbl-empty"><div class="tbl-empty-icon">📦</div><div>Sin datos encontrados, selecciona otros filtros</div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- VENCIMIENTOS -->
+    <div class="page-content" id="page-vencimientos">
+      <div class="card">
+        <div class="card-head">Alerta de vencimientos</div>
+        <div class="tbl-toolbar">
+          <div class="tbl-filters">
+            <select class="tbl-select"><option>Tipo: Todos</option><option>SOAT</option><option>Tecnicomecánica</option><option>Licencia conducción</option></select>
+            <button class="btn-clear">✕ Limpiar</button>
+            <button class="btn-filter">Filtrar</button>
+          </div>
+          <button class="btn-export">Exportar</button>
+        </div>
+        <div class="counters">
+          <div class="counter-box"><div class="counter-icon total">≡</div><div><div class="counter-label">Total</div><div class="counter-val">0</div></div></div>
+          <div class="counter-box"><div class="counter-icon inhab">!</div><div><div class="counter-label">Vencidos</div><div class="counter-val">0</div></div></div>
+          <div class="counter-box"><div class="counter-icon ret">~</div><div><div class="counter-label">Próx. 30 días</div><div class="counter-val">0</div></div></div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Placa</th><th>Cédula conductor</th><th>Nombre</th><th>SOAT venc.</th><th>Revisión tecnicomecánica</th><th>Vencimiento</th><th>Tipo</th></tr></thead>
+            <tbody><tr><td colspan="7" class="tbl-empty"><div class="tbl-empty-icon">🔔</div><div>Sin alertas activas</div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ANTICIPOS -->
+    <div class="page-content" id="page-anticipos">
+      <div class="card">
+        <div class="card-head">Anticipos</div>
+        <div class="tbl-toolbar">
+          <div class="tbl-filters">
+            <input class="tbl-search" placeholder="Buscar..." />
+            <select class="tbl-select"><option>Estado: Todos</option></select>
+            <input type="date" class="tbl-select" />
+            <button class="btn-clear">✕ Limpiar</button>
+            <button class="btn-filter">Filtrar</button>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn-export">Exportar Excel</button>
+            <button class="btn-new">Legalizar anticipo</button>
+          </div>
+        </div>
+        <div class="counters">
+          <div class="counter-box"><div class="counter-icon total">≡</div><div><div class="counter-label">Total anticipos</div><div class="counter-val">0</div></div></div>
+          <div class="counter-box"><div class="counter-icon hab">✓</div><div><div class="counter-label">Guardados</div><div class="counter-val">0</div></div></div>
+          <div class="counter-box"><div class="counter-icon ret" style="background:#2563a8;">C</div><div><div class="counter-label">Contabilizados</div><div class="counter-val">0</div></div></div>
+          <div class="counter-box"><div class="counter-icon inhab">✕</div><div><div class="counter-label">Anulados</div><div class="counter-val">0</div></div></div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Documento</th><th>Fecha</th><th>Titular</th><th>Conductor</th><th>Descuento</th><th>Valores</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <tbody><tr><td colspan="8" class="tbl-empty"><div class="tbl-empty-icon">💰</div><div>Sin datos encontrados</div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- GENERIC PAGES -->
+    <div class="page-content" id="page-estados"><div class="card"><div class="card-head">Control de estados</div><div class="tbl-toolbar"><div class="tbl-filters"><input type="date" class="tbl-select" /><input type="date" class="tbl-select" /><button class="btn-clear">✕ Limpiar</button><button class="btn-filter">Filtrar</button></div></div><div class="tbl-wrap"><table><thead><tr><th>Agencia</th><th>Manifiesto</th><th>Fecha</th><th>Placa</th><th>Conductor</th><th>Estado</th><th>Origen</th><th>Destino</th><th>Acciones</th></tr></thead><tbody><tr><td colspan="9" class="tbl-empty"><div>Sin registros</div></td></tr></tbody></table></div></div></div>
+
+    <div class="page-content" id="page-ministerio"><div class="card"><div class="card-head">Envío masivo al ministerio</div><div class="tbl-toolbar"><div class="tbl-filters"><select class="tbl-select"><option>Proceso: Todos</option></select><input type="date" class="tbl-select" /><input type="date" class="tbl-select" /><button class="btn-filter">Buscar</button></div></div><div class="tbl-wrap"><table><thead><tr><th>Manifiesto</th><th>Fecha</th><th>Cliente</th><th>Remesa</th><th>Ubicación descargue</th><th>Pedido</th><th>Orden de cargue</th><th>Placa</th><th>Conductor</th><th>Estado</th></tr></thead><tbody><tr><td colspan="10" class="tbl-empty"><div>Sin datos encontrados, selecciona otros filtros</div></td></tr></tbody></table></div></div></div>
+
+    <div class="page-content" id="page-cumplidos"><div class="card"><div class="card-head">Gestión de cumplidos</div><div class="tbl-toolbar"><div class="tbl-filters"><input class="tbl-search" placeholder="Manifiesto..." /><select class="tbl-select"><option>Estado: Todos</option></select><select class="tbl-select"><option>Placa de vehículo</option></select><button class="btn-filter">Filtrar</button></div></div><div class="tbl-wrap"><table><thead><tr><th>Manifiesto</th><th>Agencia</th><th>Fecha</th><th>Estado</th><th>Cliente</th><th>Vehículo</th><th>Conductor (CC)</th><th>Acciones</th></tr></thead><tbody><tr><td colspan="8" class="tbl-empty"><div>Sin datos encontrados</div></td></tr></tbody></table></div></div></div>
+
+    <div class="page-content" id="page-paqueteo"><div class="card"><div class="card-head">Planillar paqueteo</div><p style="font-size:13px;color:#6b7a99;margin-top:8px;">Módulo para planillado de paqueteo. Próximamente disponible.</p></div></div>
+    <div class="page-content" id="page-seguimiento"><div class="card"><div class="card-head">Seguimiento de viajes</div><div class="tbl-toolbar"><div class="tbl-filters"><input type="date" class="tbl-select" /><input type="date" class="tbl-select" /><select class="tbl-select"><option>Estado: Todos</option></select><button class="btn-filter">Filtrar</button></div></div><div class="tbl-wrap"><table><thead><tr><th>Manifiesto</th><th>Agencia</th><th>Fecha</th><th>Placa</th><th>Conductor</th><th>Teléfono</th><th>Ult. llamada</th><th>Ult. detalle</th><th>Origen</th><th>Destino</th><th>Estado</th></tr></thead><tbody><tr><td colspan="11" class="tbl-empty"><div>Sin viajes en el rango seleccionado</div></td></tr></tbody></table></div></div></div>
+    <div class="page-content" id="page-tablero"><div class="card"><div class="card-head">Tablero de control</div><p style="font-size:13px;color:#6b7a99;margin-top:8px;">Dashboard operativo. Próximamente disponible.</p></div></div>
+    <div class="page-content" id="page-catalogos"><div class="card"><div class="card-head">Catálogos</div><p style="font-size:13px;color:#6b7a99;margin-top:8px;">Gestión de catálogos de vehículos, logística y transporte.</p></div></div>
+    <div class="page-content" id="page-operaciones-param"><div class="card"><div class="card-head">Configuración de operaciones</div><p style="font-size:13px;color:#6b7a99;margin-top:8px;">Consecutivos, parámetros y conexiones RNDC.</p></div></div>
+    <div class="page-content" id="page-otros-costos"><div class="card"><div class="card-head">Otros costos</div><div class="tbl-toolbar"><div style="display:flex;gap:8px;"><button class="btn-export">Exportar</button><button class="btn-new">+ Nuevo costo</button></div></div><div class="tbl-wrap"><table><thead><tr><th>Descripción</th><th>Cuenta ingreso</th><th>Cuenta costo</th><th>Porcentaje IVA</th><th>Cuenta IVA</th><th>Acciones</th></tr></thead><tbody><tr><td colspan="6" class="tbl-empty"><div>Sin registros</div></td></tr></tbody></table></div></div></div>
+    <div class="page-content" id="page-pronto-pago"><div class="card"><div class="card-head">Pronto pago</div><div class="tbl-toolbar"><div style="display:flex;gap:8px;"><button class="btn-export">Exportar</button><button class="btn-new">+ Nuevo pronto pago</button></div></div><div class="tbl-wrap"><table><thead><tr><th>Nombre</th><th>Filtro</th><th>Fecha creación</th><th>Creado por</th><th>Acciones</th></tr></thead><tbody><tr><td colspan="5" class="tbl-empty"><div>Sin registros</div></td></tr></tbody></table></div></div></div>
+    <div class="page-content" id="page-puntos-control"><div class="card"><div class="card-head">Puntos de control</div><div class="tbl-toolbar"><div style="display:flex;gap:8px;"><button class="btn-export">Exportar</button><button class="btn-new">+ Nuevo punto</button></div></div><div class="tbl-wrap"><table><thead><tr><th>Descripción</th><th>Municipio</th><th>Latitud</th><th>Longitud</th><th>Acciones</th></tr></thead><tbody><tr><td colspan="5" class="tbl-empty"><div>Sin registros</div></td></tr></tbody></table></div></div></div>
+    <div class="page-content" id="page-rutas-control"><div class="card"><div class="card-head">Rutas de control</div><div class="tbl-toolbar"><div style="display:flex;gap:8px;"><button class="btn-export">Exportar</button><button class="btn-new">+ Nueva ruta</button></div></div><div class="tbl-wrap"><table><thead><tr><th>Código</th><th>Descripción</th><th>Origen</th><th>Destino</th><th>Acciones</th></tr></thead><tbody><tr><td colspan="5" class="tbl-empty"><div>Sin registros</div></td></tr></tbody></table></div></div></div>
+    <div class="page-content" id="page-aprobaciones"><div class="card"><div class="card-head">Aprobaciones</div><div class="tbl-toolbar"><div class="tbl-filters"><select class="tbl-select"><option>Tipo: Todos</option></select><select class="tbl-select"><option>Estado: Pendientes</option></select><button class="btn-filter">Filtrar</button></div></div><div class="tbl-wrap"><table><thead><tr><th>ID</th><th>Documento</th><th>Cliente</th><th>Tipo</th><th>Estado</th><th>Valor solicitado</th><th>Valor cliente</th><th>Solicitado por</th><th>Fecha</th></tr></thead><tbody><tr><td colspan="9" class="tbl-empty"><div>Sin solicitudes pendientes</div></td></tr></tbody></table></div></div></div>
+
+  </div>
+</div>
+</div>
+</div>
+
+<script>
+document.getElementById('sysDate').textContent = new Date().toLocaleDateString('es-CO');
+
+function doLogin(){
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('appScreen').style.display='block';
+  go('vencimientos','Alerta de vencimientos','Herramientas');
+}
+function doLogout(){
+  document.getElementById('appScreen').style.display='none';
+  document.getElementById('loginScreen').style.display='block';
+}
+
+document.getElementById('uInput').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+document.getElementById('pInput').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+
+function toggleGroup(id){
+  const el=document.getElementById(id);
+  const arr=document.getElementById('arr-'+id);
+  if(el.style.display==='none'){el.style.display='block';arr.classList.add('open');}
+  else{el.style.display='none';arr.classList.remove('open');}
+}
+
+function go(pageId, pageName, section){
+  document.querySelectorAll('.page-content').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const pg=document.getElementById('page-'+pageId);
+  if(pg) pg.classList.add('active');
+  document.getElementById('bc-page').textContent=pageName||pageId;
+  document.getElementById('bc-section').textContent=section||'Operaciones';
+  document.getElementById('topModule').textContent='Módulo: '+(section||'Operaciones');
+  document.querySelectorAll('.nav-item').forEach(n=>{
+    if(n.getAttribute('onclick')&&n.getAttribute('onclick').includes("'"+pageId+"'")){n.classList.add('active');}
+  });
+}
+</script>
+
+<script>
+// ============================================================
+// SUPABASE CONFIG - TransportesMOC
+// ============================================================
+const SB_URL = 'https://cfgcuzdkgidudbnfdlxn.supabase.co';
+const SB_KEY = 'sb_publishable_f5x8xoeSk2TOAq8n15lcZQ_bLIQcm7Z';
+const { createClient } = supabase;
+const db = createClient(SB_URL, SB_KEY);
+
+let USER_SESSION = null;
+
+// ============================================================
+// AUTH - Login real con Supabase Auth
+// ============================================================
+async function doLogin() {
+  const email = document.getElementById('uInput').value.trim();
+  const password = document.getElementById('pInput').value;
+
+  if (!email || !password) {
+    alert('Ingresa tu correo y contraseña');
+    return;
+  }
+
+  const { data, error } = await db.auth.signInWithPassword({ email, password });
+
+  if (error) {
+    document.querySelector('.login-hint').textContent = '❌ ' + error.message;
+    document.querySelector('.login-hint').style.color = '#e5534b';
+    return;
+  }
+
+  USER_SESSION = data.user;
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appScreen').style.display = 'block';
+  document.getElementById('topUser').textContent = 'Bienvenido, ' + (data.user.email.split('@')[0].toUpperCase());
+  go('vencimientos', 'Alerta de vencimientos', 'Herramientas');
+  loadVencimientos();
+  loadDashboardStats();
+}
+
+async function doLogout() {
+  await db.auth.signOut();
+  USER_SESSION = null;
+  document.getElementById('appScreen').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'block';
+}
+
+// Al cargar verificar sesión activa
+window.addEventListener('load', async () => {
+  document.getElementById('sysDate').textContent = new Date().toLocaleDateString('es-CO');
+  const { data } = await db.auth.getSession();
+  if (data?.session) {
+    USER_SESSION = data.session.user;
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appScreen').style.display = 'block';
+    document.getElementById('topUser').textContent = 'Bienvenido, ' + (USER_SESSION.email.split('@')[0].toUpperCase());
+    go('vencimientos', 'Alerta de vencimientos', 'Herramientas');
+    loadVencimientos();
+    loadDashboardStats();
+  }
+});
+
+// ============================================================
+// TOAST
+// ============================================================
+function toast(msg, ok=true) {
+  let t = document.getElementById('moc-toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'moc-toast';
+    t.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#1a2a4a;color:#fff;padding:10px 18px;border-radius:7px;font-size:12px;z-index:9999;display:none;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.background = ok ? '#22a06b' : '#e5534b';
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3000);
+}
+
+// ============================================================
+// VENCIMIENTOS
+// ============================================================
+async function loadVencimientos() {
+  const hoy = new Date().toISOString().split('T')[0];
+  const en30 = new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0];
+
+  const { data } = await db.from('vehiculos').select('*, conductores(nombre, cedula)').order('soat_vencimiento');
+
+  if (!data) return;
+
+  const total = data.length;
+  const vencidos = data.filter(v => v.soat_vencimiento && v.soat_vencimiento < hoy).length;
+  const proximos = data.filter(v => v.soat_vencimiento && v.soat_vencimiento >= hoy && v.soat_vencimiento <= en30).length;
+
+  // Actualizar contadores
+  const pg = document.getElementById('page-vencimientos');
+  if (!pg) return;
+
+  const stats = pg.querySelector('.rndc-stat-grid');
+  if (stats) {
+    stats.innerHTML = `
+      <div class="rndc-stat"><div class="rndc-stat-val" style="color:#2563a8">${total}</div><div class="rndc-stat-lbl">Total</div></div>
+      <div class="rndc-stat"><div class="rndc-stat-val rndc-red">${vencidos}</div><div class="rndc-stat-lbl">Vencidas</div></div>
+      <div class="rndc-stat"><div class="rndc-stat-val rndc-amber">${proximos}</div><div class="rndc-stat-lbl">Por vencer 30 días</div></div>
+    `;
+  }
+
+  const tbody = pg.querySelector('tbody');
+  if (!tbody) return;
+
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="8" class="tbl-empty"><div>No hay vehículos registrados</div></td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = data.map(v => {
+    const est = !v.soat_vencimiento ? 'pendiente' : v.soat_vencimiento < hoy ? 'vencido' : v.soat_vencimiento <= en30 ? 'próximo' : 'vigente';
+    const cls = est === 'vencido' ? 'b-red' : est === 'próximo' ? 'b-amber' : 'b-green';
+    return `<tr>
+      <td>${v.placa}</td>
+      <td>${v.conductores?.cedula || '-'}</td>
+      <td>${v.conductores?.nombre || '-'}</td>
+      <td>-</td>
+      <td>${v.soat_vencimiento || '-'}</td>
+      <td>-</td>
+      <td>${v.tecnomecanica_vencimiento || '-'}</td>
+      <td><span class="badge ${cls}">${est}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ============================================================
+// VEHÍCULOS
+// ============================================================
+async function loadVehiculos() {
+  const { data } = await db.from('vehiculos').select('*, propietarios!propietario_id(nombre), conductores(nombre)').order('placa');
+
+  const pg = document.getElementById('page-vehiculos');
+  if (!pg || !data) return;
+
+  const counters = pg.querySelectorAll('.counter-val');
+  const total = data.length;
+  const hab = data.filter(v => v.estado === 'habilitado').length;
+  const inhab = data.filter(v => v.estado === 'inhabilitado').length;
+  const ret = data.filter(v => v.estado === 'retirado').length;
+  if (counters[0]) counters[0].textContent = total;
+  if (counters[1]) counters[1].textContent = hab;
+  if (counters[2]) counters[2].textContent = inhab;
+  if (counters[3]) counters[3].textContent = ret;
+
+  const tbody = pg.querySelector('tbody');
+  if (!tbody) return;
+
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="10" class="tbl-empty"><div class="tbl-empty-icon">🚛</div><div>Sin registros encontrados</div></td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = data.map(v => {
+    const cls = v.estado === 'habilitado' ? 'b-green' : v.estado === 'inhabilitado' ? 'b-red' : 'b-gray';
+    return `<tr>
+      <td><strong>${v.placa}</strong></td>
+      <td>${v.clase || '-'}</td>
+      <td>${v.marca || '-'}</td>
+      <td>${v.linea || '-'}</td>
+      <td>${v.color || '-'}</td>
+      <td>${v.propietarios?.nombre || '-'}</td>
+      <td>-</td>
+      <td>${v.conductores?.nombre || '-'}</td>
+      <td><span class="badge ${cls}">${v.estado}</span></td>
+      <td><button class="act-btn" title="Editar">✏️</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ============================================================
+// CONDUCTORES
+// ============================================================
+async function loadConductores() {
+  const { data } = await db.from('conductores').select('*').order('nombre');
+
+  const pg = document.getElementById('page-conductores');
+  if (!pg || !data) return;
+
+  const counters = pg.querySelectorAll('.counter-val');
+  const total = data.length;
+  const act = data.filter(c => c.estado === 'activo').length;
+  const inact = data.filter(c => c.estado === 'inactivo').length;
+  if (counters[0]) counters[0].textContent = total;
+  if (counters[1]) counters[1].textContent = act;
+  if (counters[2]) counters[2].textContent = inact;
+
+  const tbody = pg.querySelector('tbody');
+  if (!tbody) return;
+
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="9" class="tbl-empty"><div class="tbl-empty-icon">👤</div><div>Sin conductores registrados</div></td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = data.map(c => {
+    const cls = c.estado === 'activo' ? 'b-green' : 'b-red';
+    return `<tr>
+      <td>${c.cedula}</td>
+      <td><strong>${c.nombre}</strong></td>
+      <td>${c.telefono || '-'}</td>
+      <td>${c.licencia_numero || '-'}</td>
+      <td>${c.licencia_categoria || '-'}</td>
+      <td>${c.licencia_vencimiento || '-'}</td>
+      <td>${c.placa_asignada || '-'}</td>
+      <td><span class="badge ${cls}">${c.estado}</span></td>
+      <td><button class="act-btn" title="Editar">✏️</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ============================================================
+// PROPIETARIOS
+// ============================================================
+async function loadPropietarios() {
+  const { data } = await db.from('propietarios').select('*').order('nombre');
+
+  const pg = document.getElementById('page-propietarios');
+  if (!pg || !data) return;
+
+  const counters = pg.querySelectorAll('.counter-val');
+  if (counters[0]) counters[0].textContent = data.length;
+  if (counters[1]) counters[1].textContent = data.filter(p => p.estado === 'habilitado').length;
+  if (counters[2]) counters[2].textContent = data.filter(p => p.estado === 'inhabilitado').length;
+
+  const tbody = pg.querySelector('tbody');
+  if (!tbody) return;
+
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="tbl-empty"><div class="tbl-empty-icon">👥</div><div>Sin propietarios registrados</div></td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = data.map(p => {
+    const cls = p.estado === 'habilitado' ? 'b-green' : 'b-red';
+    return `<tr>
+      <td>${p.nit_cedula}</td>
+      <td><strong>${p.nombre}</strong></td>
+      <td>${p.tipo_persona}</td>
+      <td>${p.telefono || '-'}</td>
+      <td>${p.ciudad || '-'}</td>
+      <td><span class="badge ${cls}">${p.estado}</span></td>
+      <td><button class="act-btn">✏️</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ============================================================
+// MANIFIESTOS
+// ============================================================
+async function loadManifiestos() {
+  const { data } = await db.from('manifiestos').select('*, clientes(nombre), vehiculos(placa), conductores(nombre)').order('created_at', {ascending: false});
+
+  const pg = document.getElementById('page-manifiestos');
+  if (!pg || !data) return;
+
+  const counters = pg.querySelectorAll('.counter-val');
+  if (counters[0]) counters[0].textContent = data.length;
+  if (counters[1]) counters[1].textContent = data.filter(m => m.estado === 'en_transito').length;
+  if (counters[2]) counters[2].textContent = data.filter(m => m.estado === 'entregado').length;
+  if (counters[3]) counters[3].textContent = data.filter(m => m.rndc_estado === 'enviado').length;
+
+  const tbody = pg.querySelector('tbody');
+  if (!tbody) return;
+
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="11" class="tbl-empty"><div class="tbl-empty-icon">📦</div><div>Sin manifiestos registrados</div></td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = data.map(m => {
+    const cls = m.estado === 'entregado' ? 'b-green' : m.estado === 'en_transito' ? 'b-blue' : 'b-gray';
+    const rndc = m.rndc_estado === 'enviado' ? '<span class="badge b-green">✓ RNDC</span>' : '<span class="badge b-amber">Pendiente</span>';
+    return `<tr>
+      <td><strong>${m.numero_manifiesto}</strong></td>
+      <td>${m.agencia || '-'}</td>
+      <td>${m.fecha}</td>
+      <td>${m.clientes?.nombre || '-'}</td>
+      <td>${m.vehiculos?.placa || '-'}</td>
+      <td>${m.conductores?.nombre || '-'}</td>
+      <td>${m.origen}</td>
+      <td>${m.destino}</td>
+      <td>${m.valor_flete ? '$'+parseInt(m.valor_flete).toLocaleString() : '-'}</td>
+      <td><span class="badge ${cls}">${m.estado}</span></td>
+      <td>${rndc}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ============================================================
+// REMESAS
+// ============================================================
+async function loadRemesas() {
+  const { data } = await db.from('remesas').select('*, clientes(nombre), vehiculos(placa), manifiestos(numero_manifiesto)').order('created_at', {ascending: false});
+
+  const pg = document.getElementById('page-remesas');
+  if (!pg || !data) return;
+
+  const counters = pg.querySelectorAll('.counter-val');
+  if (counters[0]) counters[0].textContent = data.length;
+  if (counters[1]) counters[1].textContent = data.filter(r => r.estado === 'planillada').length;
+  if (counters[2]) counters[2].textContent = data.filter(r => r.estado === 'entregada').length;
+
+  const tbody = pg.querySelector('tbody');
+  if (!tbody) return;
+
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="10" class="tbl-empty"><div class="tbl-empty-icon">📋</div><div>Sin remesas registradas</div></td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = data.map(r => {
+    const cls = r.estado === 'entregada' ? 'b-green' : r.estado === 'planillada' ? 'b-blue' : 'b-gray';
+    return `<tr>
+      <td><strong>${r.numero_remesa}</strong></td>
+      <td>${r.manifiestos?.numero_manifiesto || '-'}</td>
+      <td>${r.agencia || '-'}</td>
+      <td>${r.fecha}</td>
+      <td>${r.clientes?.nombre || '-'}</td>
+      <td>${r.vehiculos?.placa || '-'}</td>
+      <td>${r.origen || '-'}</td>
+      <td>${r.destino || '-'}</td>
+      <td>${r.flete ? '$'+parseInt(r.flete).toLocaleString() : '-'}</td>
+      <td><span class="badge ${cls}">${r.estado}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ============================================================
+// ANTICIPOS
+// ============================================================
+async function loadAnticipos() {
+  const { data } = await db.from('anticipos').select('*, conductores(nombre), manifiestos(numero_manifiesto)').order('created_at', {ascending: false});
+
+  const pg = document.getElementById('page-anticipos');
+  if (!pg || !data) return;
+
+  const counters = pg.querySelectorAll('.counter-val');
+  if (counters[0]) counters[0].textContent = data.length;
+  if (counters[1]) counters[1].textContent = data.filter(a => a.estado === 'guardado').length;
+  if (counters[2]) counters[2].textContent = data.filter(a => a.estado === 'contabilizado').length;
+  if (counters[3]) counters[3].textContent = data.filter(a => a.estado === 'anulado').length;
+
+  const tbody = pg.querySelector('tbody');
+  if (!tbody) return;
+
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="8" class="tbl-empty"><div class="tbl-empty-icon">💰</div><div>Sin anticipos registrados</div></td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = data.map(a => {
+    const cls = a.estado === 'contabilizado' ? 'b-green' : a.estado === 'anulado' ? 'b-red' : 'b-blue';
+    return `<tr>
+      <td><strong>${a.numero_documento}</strong></td>
+      <td>${a.fecha}</td>
+      <td>${a.conductores?.nombre || '-'}</td>
+      <td>${a.conductores?.nombre || '-'}</td>
+      <td>${a.descuento ? '$'+parseInt(a.descuento).toLocaleString() : '$0'}</td>
+      <td>$${parseInt(a.valor).toLocaleString()}</td>
+      <td><span class="badge ${cls}">${a.estado}</span></td>
+      <td><button class="act-btn">✏️</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ============================================================
+// DASHBOARD STATS
+// ============================================================
+async function loadDashboardStats() {
+  const [v, c, m, r] = await Promise.all([
+    db.from('vehiculos').select('id', {count: 'exact'}),
+    db.from('conductores').select('id', {count: 'exact'}),
+    db.from('manifiestos').select('id', {count: 'exact'}),
+    db.from('remesas').select('id', {count: 'exact'})
+  ]);
+
+  const cards = document.querySelectorAll('.dash-card-value');
+  if (cards[0]) cards[0].textContent = v.count || 0;
+  if (cards[1]) cards[1].textContent = c.count || 0;
+  if (cards[2]) cards[2].textContent = m.count || 0;
+  if (cards[3]) cards[3].textContent = r.count || 0;
+}
+
+// ============================================================
+// OVERRIDE go() para cargar datos al cambiar de página
+// ============================================================
+const _goOrig = go;
+function go(pageId, pageName, section) {
+  _goOrig(pageId, pageName, section);
+  const loaders = {
+    vencimientos: loadVencimientos,
+    vehiculos: loadVehiculos,
+    conductores: loadConductores,
+    propietarios: loadPropietarios,
+    manifiestos: loadManifiestos,
+    remesas: loadRemesas,
+    anticipos: loadAnticipos,
+  };
+  if (loaders[pageId]) loaders[pageId]();
+}
+</script>
+</body>
+</html>
