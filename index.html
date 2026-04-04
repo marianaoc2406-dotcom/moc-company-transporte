@@ -585,6 +585,17 @@ function go(pageId, pageName, section){
   document.querySelectorAll('.nav-item').forEach(n=>{
     if(n.getAttribute('onclick')&&n.getAttribute('onclick').includes("'"+pageId+"'")){n.classList.add('active');}
   });
+  // Cargar datos de Supabase
+  const loaders = {
+    vencimientos: loadVencimientos,
+    vehiculos: loadVehiculos,
+    conductores: loadConductores,
+    propietarios: loadPropietarios,
+    manifiestos: loadManifiestos,
+    remesas: loadRemesas,
+    anticipos: loadAnticipos,
+  };
+  if (typeof loadVencimientos !== 'undefined' && loaders[pageId]) loaders[pageId]();
 }
 </script>
 
@@ -977,23 +988,7 @@ async function loadDashboardStats() {
   if (cards[3]) cards[3].textContent = r.count || 0;
 }
 
-// ============================================================
-// OVERRIDE go() para cargar datos al cambiar de página
-// ============================================================
-const _goOrig = go;
-function go(pageId, pageName, section) {
-  _goOrig(pageId, pageName, section);
-  const loaders = {
-    vencimientos: loadVencimientos,
-    vehiculos: loadVehiculos,
-    conductores: loadConductores,
-    propietarios: loadPropietarios,
-    manifiestos: loadManifiestos,
-    remesas: loadRemesas,
-    anticipos: loadAnticipos,
-  };
-  if (loaders[pageId]) loaders[pageId]();
-}
+// Loaders integrados en go()
 </script>
 </body>
 </html>
