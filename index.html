@@ -198,6 +198,56 @@ tr:hover td{background:#f5f7fb;}
 </div>
 </div>
 
+
+<!-- PANTALLA SELECCIÓN DE MÓDULO -->
+<div id="moduleScreen" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.7);z-index:500;display:none;align-items:center;justify-content:center;">
+<div style="background:white;border-radius:14px;padding:36px 32px;width:640px;max-width:96vw;box-shadow:0 24px 60px rgba(0,0,0,0.25);">
+  <div style="text-align:center;margin-bottom:28px;">
+    <div style="font-size:22px;font-weight:700;color:#1a2a4a;display:flex;align-items:center;justify-content:center;gap:8px;">
+      <span style="width:10px;height:10px;border-radius:50%;background:#2563a8;display:inline-block;"></span>
+      Módulos
+    </div>
+    <div style="font-size:13px;color:#6b7a99;margin-top:6px;">Seleccione el módulo al cual desea acceder</div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+    <div class="mod-card" onclick="elegirModulo('operaciones')" style="cursor:pointer;border:1.5px solid #e0e7ef;border-radius:10px;padding:22px 12px;text-align:center;transition:all 0.15s;">
+      <div style="font-size:26px;margin-bottom:8px;">🚛</div>
+      <div style="font-size:12px;font-weight:700;color:#1a2a4a;">Operaciones</div>
+    </div>
+    <div class="mod-card" onclick="elegirModulo('rndc')" style="cursor:pointer;border:1.5px solid #e0e7ef;border-radius:10px;padding:22px 12px;text-align:center;transition:all 0.15s;">
+      <div style="font-size:26px;margin-bottom:8px;">📡</div>
+      <div style="font-size:12px;font-weight:700;color:#1a2a4a;">RNDC</div>
+    </div>
+    <div class="mod-card" onclick="elegirModulo('terceros')" style="cursor:pointer;border:1.5px solid #e0e7ef;border-radius:10px;padding:22px 12px;text-align:center;transition:all 0.15s;">
+      <div style="font-size:26px;margin-bottom:8px;">👥</div>
+      <div style="font-size:12px;font-weight:700;color:#1a2a4a;">Terceros</div>
+    </div>
+    <div class="mod-card" style="cursor:not-allowed;border:1.5px solid #e0e7ef;border-radius:10px;padding:22px 12px;text-align:center;opacity:0.45;position:relative;">
+      <div style="position:absolute;top:8px;right:8px;font-size:11px;">🔒</div>
+      <div style="font-size:26px;margin-bottom:8px;">📊</div>
+      <div style="font-size:12px;font-weight:700;color:#6b7a99;">Contabilidad</div>
+    </div>
+    <div class="mod-card" style="cursor:not-allowed;border:1.5px solid #e0e7ef;border-radius:10px;padding:22px 12px;text-align:center;opacity:0.45;position:relative;">
+      <div style="position:absolute;top:8px;right:8px;font-size:11px;">🔒</div>
+      <div style="font-size:26px;margin-bottom:8px;">🛒</div>
+      <div style="font-size:12px;font-weight:700;color:#6b7a99;">Compras</div>
+    </div>
+    <div class="mod-card" style="cursor:not-allowed;border:1.5px solid #e0e7ef;border-radius:10px;padding:22px 12px;text-align:center;opacity:0.45;position:relative;">
+      <div style="position:absolute;top:8px;right:8px;font-size:11px;">🔒</div>
+      <div style="font-size:26px;margin-bottom:8px;">💼</div>
+      <div style="font-size:12px;font-weight:700;color:#6b7a99;">Nómina</div>
+    </div>
+  </div>
+  <div style="margin-top:18px;text-align:center;">
+    <button onclick="doLogout()" style="font-size:11px;color:#6b7a99;background:none;border:none;cursor:pointer;">Cerrar sesión</button>
+  </div>
+</div>
+</div>
+
+<style>
+.mod-card:hover { border-color:#2563a8 !important; background:#f0f6ff; }
+</style>
+
 <div id="appScreen" style="display:none;">
 
 <div class="topbar">
@@ -209,7 +259,10 @@ tr:hover td{background:#f5f7fb;}
     <div class="topbar-module" id="topModule">Módulo: Operaciones</div>
   </div>
   <div class="topbar-right">
-    <span class="topbar-user" id="topUser">Bienvenido, ADMIN</span>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div id="topAvatar" style="width:28px;height:28px;border-radius:50%;background:#2563a8;color:white;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">A</div>
+      <span class="topbar-user" id="topUser">Bienvenido, ADMIN</span>
+    </div>
     <button class="topbar-btn" onclick="doLogout()">Cerrar sesión</button>
   </div>
 </div>
@@ -230,6 +283,8 @@ tr:hover td{background:#f5f7fb;}
       <div class="nav-item" onclick="go('paqueteo','Planillar paqueteo','Herramientas')"><span class="nav-dot"></span>Planillar paqueteo</div>
       <div class="nav-item" onclick="go('seguimiento','Seguimiento de viajes','Herramientas')"><span class="nav-dot"></span>Seguimiento de viajes</div>
       <div class="nav-item" onclick="go('tablero','Tablero de control','Herramientas')"><span class="nav-dot"></span>Tablero de control</div>
+      <div class="nav-item" onclick="go('uiaf','Reporte UIAF','Herramientas')"><span class="nav-dot"></span>Reporte UIAF</div>
+      <div class="nav-item" onclick="go('pre-estudio','Vehículos Pre-Estudio','Herramientas')"><span class="nav-dot"></span>Vehículos en Pre-Estudio</div>
     </div>
   </div>
 
@@ -247,6 +302,9 @@ tr:hover td{background:#f5f7fb;}
       <div class="nav-item" onclick="go('pronto-pago','Pronto pago','Parámetros')"><span class="nav-dot"></span>Pronto pago</div>
       <div class="nav-item" onclick="go('puntos-control','Puntos de control','Parámetros')"><span class="nav-dot"></span>Puntos de control</div>
       <div class="nav-item" onclick="go('rutas-control','Rutas de control','Parámetros')"><span class="nav-dot"></span>Rutas de control</div>
+      <div class="nav-item" onclick="go('plantilla-eds','Plantilla EDS','Parámetros')"><span class="nav-dot"></span>Plantilla EDS</div>
+      <div class="nav-item" onclick="go('plantilla-legal','Plantilla Legalización','Parámetros')"><span class="nav-dot"></span>Plantilla Legalización</div>
+      <div class="nav-item" onclick="go('planilla-eiss','Planilla EISS','Parámetros')"><span class="nav-dot"></span>Planilla EISS</div>
     </div>
   </div>
 
@@ -264,6 +322,21 @@ tr:hover td{background:#f5f7fb;}
       <div class="nav-item" onclick="go('manifiestos','Manifiestos','Transporte')"><span class="nav-dot"></span>Manifiestos</div>
       <div class="nav-item" onclick="go('remesas','Remesas','Transporte')"><span class="nav-dot"></span>Remesas</div>
       <div class="nav-item" onclick="go('anticipos','Anticipos','Transporte')"><span class="nav-dot"></span>Anticipos</div>
+      <div class="nav-item" onclick="go('orden-manual','Orden de cargue manual','Transporte')"><span class="nav-dot"></span>Orden de cargue manual</div>
+    </div>
+  </div>
+
+  <div class="sidebar-sep"></div>
+
+  <div class="sidebar-section">
+    <div class="nav-group-header" onclick="toggleGroup('g-rndc')">
+      <span class="nav-group-label">RNDC</span>
+      <span class="nav-arrow open" id="arr-g-rndc">&#9658;</span>
+    </div>
+    <div class="nav-children" id="g-rndc">
+      <div class="nav-item" onclick="go('rndc-manifiestos','Manifiestos RNDC','RNDC')"><span class="nav-dot"></span>Manifiestos</div>
+      <div class="nav-item" onclick="go('rndc-estado','Estado de envíos','RNDC')"><span class="nav-dot"></span>Estado de envíos</div>
+      <div class="nav-item" onclick="go('rndc-config','Configuración RNDC','RNDC')"><span class="nav-dot"></span>Configuración</div>
     </div>
   </div>
 
@@ -564,6 +637,228 @@ tr:hover td{background:#f5f7fb;}
     <div class="page-content" id="page-pronto-pago"><div class="card"><div class="card-head">Pronto pago</div><div class="tbl-toolbar"><div style="display:flex;gap:8px;"><button class="btn-export">Exportar</button><button class="btn-new">+ Nuevo pronto pago</button></div></div><div class="tbl-wrap"><table><thead><tr><th>Nombre</th><th>Filtro</th><th>Fecha creación</th><th>Creado por</th><th>Acciones</th></tr></thead><tbody><tr><td colspan="5" class="tbl-empty"><div>Sin registros</div></td></tr></tbody></table></div></div></div>
     <div class="page-content" id="page-puntos-control"><div class="card"><div class="card-head">Puntos de control</div><div class="tbl-toolbar"><div style="display:flex;gap:8px;"><button class="btn-export">Exportar</button><button class="btn-new">+ Nuevo punto</button></div></div><div class="tbl-wrap"><table><thead><tr><th>Descripción</th><th>Municipio</th><th>Latitud</th><th>Longitud</th><th>Acciones</th></tr></thead><tbody><tr><td colspan="5" class="tbl-empty"><div>Sin registros</div></td></tr></tbody></table></div></div></div>
     <div class="page-content" id="page-rutas-control"><div class="card"><div class="card-head">Rutas de control</div><div class="tbl-toolbar"><div style="display:flex;gap:8px;"><button class="btn-export">Exportar</button><button class="btn-new">+ Nueva ruta</button></div></div><div class="tbl-wrap"><table><thead><tr><th>Código</th><th>Descripción</th><th>Origen</th><th>Destino</th><th>Acciones</th></tr></thead><tbody><tr><td colspan="5" class="tbl-empty"><div>Sin registros</div></td></tr></tbody></table></div></div></div>
+
+    <!-- REPORTE UIAF -->
+    <div class="page-content" id="page-uiaf">
+      <div class="card">
+        <div class="card-head">Reporte UIAF — Antilavado de activos</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;">
+          <div class="mfield"><label>Año</label><input type="number" id="uiaf-anio" value="2026" style="padding:7px 10px;border:1px solid #c8d0df;border-radius:5px;font-size:12px;width:100%;"></div>
+          <div class="mfield"><label>Trimestre</label><select id="uiaf-trim" style="padding:7px 10px;border:1px solid #c8d0df;border-radius:5px;font-size:12px;width:100%;"><option value="1">1° Trimestre (Ene-Mar)</option><option value="2">2° Trimestre (Abr-Jun)</option><option value="3">3° Trimestre (Jul-Sep)</option><option value="4">4° Trimestre (Oct-Dic)</option></select></div>
+          <div class="mfield"><label>&nbsp;</label><button onclick="generarUIAF()" style="width:100%;padding:7px 10px;background:#2563a8;color:white;border:none;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;">⚙ Generar reporte</button></div>
+        </div>
+        <div id="uiaf-result" style="background:#f8f9fc;border:0.5px solid #dde3ec;border-radius:8px;padding:20px;text-align:center;color:#6b7a99;font-size:13px;">
+          Selecciona año y trimestre, luego haz clic en <strong>Generar reporte</strong>.
+        </div>
+      </div>
+    </div>
+
+    <!-- VEHÍCULOS EN PRE-ESTUDIO -->
+    <div class="page-content" id="page-pre-estudio">
+      <div class="card">
+        <div class="card-head">Vehículos en Pre-Estudio</div>
+        <div class="tbl-toolbar">
+          <div class="tbl-filters">
+            <input class="tbl-search" placeholder="Buscar placa...">
+            <select class="tbl-select"><option>Estado: Todos</option><option>En estudio</option><option>Aprobado</option><option>Rechazado</option></select>
+            <button class="btn-filter">Filtrar</button>
+          </div>
+          <button class="btn-new" onclick="abrirModal('modal-pre-estudio')">+ Nuevo pre-estudio</button>
+        </div>
+        <div class="counters">
+          <div class="counter-box"><div class="counter-icon total">≡</div><div><div class="counter-label">Total</div><div class="counter-val" id="pe-total">0</div></div></div>
+          <div class="counter-box"><div class="counter-icon ret" style="background:#7c5cbf;">~</div><div><div class="counter-label">En estudio</div><div class="counter-val" id="pe-estudio">0</div></div></div>
+          <div class="counter-box"><div class="counter-icon hab">✓</div><div><div class="counter-label">Aprobados</div><div class="counter-val" id="pe-aprobado">0</div></div></div>
+          <div class="counter-box"><div class="counter-icon inhab">✕</div><div><div class="counter-label">Rechazados</div><div class="counter-val" id="pe-rechazado">0</div></div></div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Placa</th><th>Clase</th><th>Marca</th><th>Propietario</th><th>Fecha solicitud</th><th>Estado</th><th>Observaciones</th><th>Acciones</th></tr></thead>
+            <tbody><tr><td colspan="8" class="tbl-empty"><div class="tbl-empty-icon">🔍</div><div>Sin vehículos en pre-estudio</div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ORDEN DE CARGUE MANUAL -->
+    <div class="page-content" id="page-orden-manual">
+      <div class="card">
+        <div class="card-head">Orden de cargue manual</div>
+        <div class="tbl-toolbar">
+          <div class="tbl-filters">
+            <input class="tbl-search" placeholder="Buscar...">
+            <select class="tbl-select"><option>Agencia: Todas</option></select>
+            <input type="date" class="tbl-select">
+            <button class="btn-clear">✕ Limpiar</button>
+            <button class="btn-filter">Filtrar</button>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn-export">Exportar</button>
+            <button class="btn-new" onclick="abrirModal('modal-orden-manual')">+ Nueva orden manual</button>
+          </div>
+        </div>
+        <div class="counters">
+          <div class="counter-box"><div class="counter-icon total">≡</div><div><div class="counter-label">Total órdenes</div><div class="counter-val">0</div></div></div>
+          <div class="counter-box"><div class="counter-icon hab">✓</div><div><div class="counter-label">Abiertas</div><div class="counter-val">0</div></div></div>
+          <div class="counter-box"><div class="counter-icon inhab">✕</div><div><div class="counter-label">Canceladas</div><div class="counter-val">0</div></div></div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>No. Orden</th><th>Agencia</th><th>Cliente</th><th>Fecha</th><th>Vehículo</th><th>Conductor</th><th>Origen</th><th>Destino</th><th>Acciones</th></tr></thead>
+            <tbody><tr><td colspan="9" class="tbl-empty"><div class="tbl-empty-icon">📋</div><div>Sin órdenes manuales</div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLANTILLA EDS -->
+    <div class="page-content" id="page-plantilla-eds">
+      <div class="card">
+        <div class="card-head">Plantilla EDS — Estaciones de Servicio</div>
+        <div class="tbl-toolbar">
+          <div class="tbl-filters">
+            <input class="tbl-search" placeholder="Buscar EDS...">
+            <button class="btn-filter">Filtrar</button>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn-export">Exportar</button>
+            <button class="btn-new" onclick="abrirModal('modal-eds')">+ Nueva EDS</button>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Nombre</th><th>Ciudad</th><th>Tercero (Código)</th><th>Acciones</th></tr></thead>
+            <tbody><tr><td colspan="4" class="tbl-empty"><div class="tbl-empty-icon">⛽</div><div>Sin estaciones registradas</div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLANTILLA LEGALIZACIÓN -->
+    <div class="page-content" id="page-plantilla-legal">
+      <div class="card">
+        <div class="card-head">Plantilla para Legalización</div>
+        <div class="tbl-toolbar">
+          <div style="display:flex;gap:8px;">
+            <button class="btn-export">Exportar</button>
+            <button class="btn-new" onclick="abrirModal('modal-plantilla-legal')">+ Nueva plantilla</button>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Nombre</th><th>Orden OSI</th><th>Acciones</th></tr></thead>
+            <tbody><tr><td colspan="3" class="tbl-empty"><div class="tbl-empty-icon">📄</div><div>Sin plantillas registradas</div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLANILLA EISS -->
+    <div class="page-content" id="page-planilla-eiss">
+      <div class="card">
+        <div class="card-head">Planilla EISS — Seguridad Social Conductores</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:16px;">
+          <div class="mfield"><label>Período (mes)</label><input type="month" id="eiss-periodo" style="padding:7px 10px;border:1px solid #c8d0df;border-radius:5px;font-size:12px;width:100%;"></div>
+          <div class="mfield"><label>Conductor</label><select id="eiss-conductor" style="padding:7px 10px;border:1px solid #c8d0df;border-radius:5px;font-size:12px;width:100%;"><option value="">Todos</option></select></div>
+          <div class="mfield"><label>&nbsp;</label><button onclick="generarEISS()" style="width:100%;padding:7px;background:#2563a8;color:white;border:none;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;">Generar planilla</button></div>
+          <div class="mfield"><label>&nbsp;</label><button onclick="" style="width:100%;padding:7px;background:#22a06b;color:white;border:none;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;">📥 Exportar Excel</button></div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Conductor</th><th>Cédula</th><th>EPS</th><th>ARL</th><th>Pensión</th><th>Días trabajados</th><th>IBC</th><th>Aporte EPS</th><th>Aporte ARL</th><th>Aporte Pensión</th><th>Total</th></tr></thead>
+            <tbody><tr><td colspan="11" class="tbl-empty"><div class="tbl-empty-icon">📊</div><div>Selecciona período y haz clic en Generar planilla</div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- RNDC MANIFIESTOS -->
+    <div class="page-content" id="page-rndc-manifiestos">
+      <div class="card">
+        <div class="card-head" style="display:flex;align-items:center;justify-content:space-between;">
+          <span>RNDC — Manifiestos pendientes de envío</span>
+          <span id="rndc-conn-badge" style="font-size:10px;padding:3px 10px;border-radius:99px;background:#fef3d0;color:#8a5a00;font-weight:600;">⚠ Configura credenciales RNDC</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+          <input type="date" id="rndc-desde" class="tbl-select">
+          <input type="date" id="rndc-hasta" class="tbl-select">
+          <select id="rndc-estado-filtro" class="tbl-select"><option value="">Estado: Todos</option><option value="pendiente">Pendiente</option><option value="enviado">Enviado</option><option value="error">Error</option></select>
+          <button class="btn-filter" onclick="ldRNDCManifiestos()">Buscar</button>
+          <button style="padding:6px 14px;font-size:12px;background:#22a06b;color:white;border:none;border-radius:5px;cursor:pointer;font-weight:600;" onclick="enviarRNDCSeleccionados()">📡 Enviar seleccionados</button>
+          <button style="padding:6px 14px;font-size:12px;background:#2563a8;color:white;border:none;border-radius:5px;cursor:pointer;" onclick="enviarRNDCTodos()">📡 Envío masivo</button>
+        </div>
+        <div class="counters">
+          <div class="counter-box"><div class="counter-icon total">≡</div><div><div class="counter-label">Total</div><div class="counter-val" id="rndc-total">0</div></div></div>
+          <div class="counter-box"><div class="counter-icon ret" style="background:#e8a020;">!</div><div><div class="counter-label">Pendientes</div><div class="counter-val" id="rndc-pendientes">0</div></div></div>
+          <div class="counter-box"><div class="counter-icon hab">✓</div><div><div class="counter-label">Enviados</div><div class="counter-val" id="rndc-enviados">0</div></div></div>
+          <div class="counter-box"><div class="counter-icon inhab">✕</div><div><div class="counter-label">Con error</div><div class="counter-val" id="rndc-errores">0</div></div></div>
+        </div>
+        <div class="tbl-wrap">
+          <table id="rndc-tabla">
+            <thead>
+              <tr>
+                <th><input type="checkbox" id="rndc-check-all" onchange="toggleRNDCAll(this)"></th>
+                <th>Manifiesto</th><th>Agencia</th><th>Fecha</th><th>Cliente</th><th>Vehículo</th><th>Conductor</th><th>Origen</th><th>Destino</th><th>Estado RNDC</th><th>N° Autorización</th><th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody><tr><td colspan="12" class="tbl-empty"><div class="tbl-empty-icon">📡</div><div>Filtra y busca manifiestos para envío al RNDC</div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- RNDC ESTADO DE ENVÍOS -->
+    <div class="page-content" id="page-rndc-estado">
+      <div class="card">
+        <div class="card-head">RNDC — Historial de envíos</div>
+        <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+          <input type="date" id="rndc-hist-desde" class="tbl-select">
+          <input type="date" id="rndc-hist-hasta" class="tbl-select">
+          <select class="tbl-select"><option>Estado: Todos</option><option>Exitoso</option><option>Error</option><option>Pendiente respuesta</option></select>
+          <button class="btn-filter">Filtrar</button>
+          <button class="btn-export">Exportar</button>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Manifiesto</th><th>Fecha envío</th><th>Estado</th><th>N° Autorización RNDC</th><th>Mensaje respuesta</th><th>Usuario</th><th>Acciones</th></tr></thead>
+            <tbody><tr><td colspan="7" class="tbl-empty"><div class="tbl-empty-icon">📋</div><div>Sin historial de envíos</div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- RNDC CONFIGURACIÓN -->
+    <div class="page-content" id="page-rndc-config">
+      <div class="card">
+        <div class="card-head">Configuración RNDC — Ministerio de Transporte</div>
+        <div style="max-width:520px;">
+          <div style="background:#dceeff;border:1px solid #b0d4f5;border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:12px;color:#1a4a8a;">
+            ℹ️ Ingresa las credenciales asignadas por el Ministerio de Transporte para la transmisión electrónica al RNDC.
+          </div>
+          <div class="mrow mrow-2" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+            <div class="mfield"><label>NIT empresa</label><input id="rndc-nit" placeholder="900123456-1" style="padding:7px 10px;border:1px solid #c8d0df;border-radius:5px;font-size:12px;width:100%;"></div>
+            <div class="mfield"><label>Código empresa RNDC</label><input id="rndc-codigo" placeholder="12345" style="padding:7px 10px;border:1px solid #c8d0df;border-radius:5px;font-size:12px;width:100%;"></div>
+          </div>
+          <div class="mrow mrow-2" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+            <div class="mfield"><label>Usuario RNDC</label><input id="rndc-user" placeholder="usuario_ministerio" style="padding:7px 10px;border:1px solid #c8d0df;border-radius:5px;font-size:12px;width:100%;"></div>
+            <div class="mfield"><label>Contraseña RNDC</label><input id="rndc-pass" type="password" placeholder="••••••••" style="padding:7px 10px;border:1px solid #c8d0df;border-radius:5px;font-size:12px;width:100%;"></div>
+          </div>
+          <div class="mrow mrow-1" style="display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:12px;">
+            <div class="mfield"><label>URL Servicio RNDC (SOAP)</label><input id="rndc-url" value="https://rndc.mintransporte.gov.co/menuservicio.aspx" style="padding:7px 10px;border:1px solid #c8d0df;border-radius:5px;font-size:12px;width:100%;"></div>
+          </div>
+          <div class="mrow mrow-2" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+            <div class="mfield"><label>Agencia por defecto</label><input id="rndc-agencia" placeholder="001" style="padding:7px 10px;border:1px solid #c8d0df;border-radius:5px;font-size:12px;width:100%;"></div>
+            <div class="mfield"><label>Modo</label><select id="rndc-modo" style="padding:7px 10px;border:1px solid #c8d0df;border-radius:5px;font-size:12px;width:100%;"><option value="produccion">Producción</option><option value="pruebas">Pruebas</option></select></div>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <button onclick="guardarConfigRNDC()" style="padding:9px 22px;background:#2563a8;color:white;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">💾 Guardar configuración</button>
+            <button onclick="probarConexionRNDC()" style="padding:9px 18px;background:#f0f3f8;color:#2563a8;border:1px solid #2563a8;border-radius:6px;font-size:12px;cursor:pointer;">🔌 Probar conexión</button>
+          </div>
+          <div id="rndc-test-result" style="margin-top:14px;display:none;padding:10px 14px;border-radius:7px;font-size:12px;"></div>
+        </div>
+      </div>
+    </div>
+
     <div class="page-content" id="page-aprobaciones"><div class="card"><div class="card-head">Aprobaciones</div><div class="tbl-toolbar"><div class="tbl-filters"><select class="tbl-select"><option>Tipo: Todos</option></select><select class="tbl-select"><option>Estado: Pendientes</option></select><button class="btn-filter">Filtrar</button></div></div><div class="tbl-wrap"><table><thead><tr><th>ID</th><th>Documento</th><th>Cliente</th><th>Tipo</th><th>Estado</th><th>Valor solicitado</th><th>Valor cliente</th><th>Solicitado por</th><th>Fecha</th></tr></thead><tbody><tr><td colspan="9" class="tbl-empty"><div>Sin solicitudes pendientes</div></td></tr></tbody></table></div></div></div>
 
   </div>
@@ -574,6 +869,74 @@ tr:hover td{background:#f5f7fb;}
 <!-- Script duplicado eliminado: las funciones doLogin/doLogout/go/toggleGroup
      están definidas en el script principal de Supabase más abajo -->
 
+
+
+<!-- MODAL PRE-ESTUDIO -->
+<div class="modal-bg" id="modal-pre-estudio">
+<div class="modal-box">
+  <div class="modal-head"><div class="modal-title">🔍 Vehículo en Pre-Estudio</div><button class="modal-x" onclick="cerrarModal('modal-pre-estudio')">✕</button></div>
+  <div class="mrow mrow-3">
+    <div class="mfield"><label>Placa *</label><input id="mpe-placa" style="text-transform:uppercase" placeholder="ABC123"></div>
+    <div class="mfield"><label>Clase</label><select id="mpe-clase"><option>Camión</option><option>Tractocamión</option><option>Furgón</option></select></div>
+    <div class="mfield"><label>Marca</label><input id="mpe-marca"></div>
+  </div>
+  <div class="mrow mrow-2">
+    <div class="mfield"><label>Propietario</label><input id="mpe-propietario"></div>
+    <div class="mfield"><label>Fecha solicitud</label><input id="mpe-fecha" type="date"></div>
+  </div>
+  <div class="mrow mrow-1"><div class="mfield"><label>Observaciones</label><input id="mpe-obs"></div></div>
+  <div class="mact"><button class="mbtn-cancel" onclick="cerrarModal('modal-pre-estudio')">Cancelar</button><button class="mbtn-save">💾 Guardar</button></div>
+</div></div>
+
+<!-- MODAL ORDEN MANUAL -->
+<div class="modal-bg" id="modal-orden-manual">
+<div class="modal-box">
+  <div class="modal-head"><div class="modal-title">📋 Nueva Orden de Cargue Manual</div><button class="modal-x" onclick="cerrarModal('modal-orden-manual')">✕</button></div>
+  <div class="mrow mrow-3">
+    <div class="mfield"><label>N° Orden</label><input id="mom-num" placeholder="OM-000001"></div>
+    <div class="mfield"><label>Agencia</label><input id="mom-agencia"></div>
+    <div class="mfield"><label>Fecha</label><input id="mom-fecha" type="date"></div>
+  </div>
+  <div class="mrow mrow-2">
+    <div class="mfield"><label>Cliente *</label><select id="mom-cli"><option value="">Seleccionar...</option></select></div>
+    <div class="mfield"><label>Vehículo</label><select id="mom-veh"><option value="">Seleccionar...</option></select></div>
+  </div>
+  <div class="mrow mrow-2">
+    <div class="mfield"><label>Conductor</label><select id="mom-con"><option value="">Seleccionar...</option></select></div>
+    <div class="mfield"><label>Valor flete ($)</label><input id="mom-flete" type="number"></div>
+  </div>
+  <div class="mrow mrow-2">
+    <div class="mfield"><label>Origen *</label><input id="mom-origen"></div>
+    <div class="mfield"><label>Destino *</label><input id="mom-destino"></div>
+  </div>
+  <div class="mact"><button class="mbtn-cancel" onclick="cerrarModal('modal-orden-manual')">Cancelar</button><button class="mbtn-save">💾 Guardar orden</button></div>
+</div></div>
+
+<!-- MODAL EDS -->
+<div class="modal-bg" id="modal-eds">
+<div class="modal-box">
+  <div class="modal-head"><div class="modal-title">⛽ Nueva EDS</div><button class="modal-x" onclick="cerrarModal('modal-eds')">✕</button></div>
+  <div class="mrow mrow-2">
+    <div class="mfield"><label>Nombre EDS *</label><input id="meds-nombre" placeholder="Estación Las Palmas"></div>
+    <div class="mfield"><label>Ciudad</label><input id="meds-ciudad" placeholder="Medellín, Antioquia"></div>
+  </div>
+  <div class="mrow mrow-2">
+    <div class="mfield"><label>Tercero (Código)</label><input id="meds-codigo" placeholder="12345"></div>
+    <div class="mfield"><label>NIT</label><input id="meds-nit"></div>
+  </div>
+  <div class="mact"><button class="mbtn-cancel" onclick="cerrarModal('modal-eds')">Cancelar</button><button class="mbtn-save">💾 Guardar EDS</button></div>
+</div></div>
+
+<!-- MODAL PLANTILLA LEGAL -->
+<div class="modal-bg" id="modal-plantilla-legal">
+<div class="modal-box">
+  <div class="modal-head"><div class="modal-title">📄 Nueva Plantilla de Legalización</div><button class="modal-x" onclick="cerrarModal('modal-plantilla-legal')">✕</button></div>
+  <div class="mrow mrow-2">
+    <div class="mfield"><label>Nombre plantilla *</label><input id="mpl-nombre"></div>
+    <div class="mfield"><label>Orden OSI</label><input id="mpl-osi" type="number"></div>
+  </div>
+  <div class="mact"><button class="mbtn-cancel" onclick="cerrarModal('modal-plantilla-legal')">Cancelar</button><button class="mbtn-save">💾 Guardar</button></div>
+</div></div>
 
 <!-- MODAL VEHÍCULO -->
 <div class="modal-bg" id="modal-vehiculo">
@@ -846,9 +1209,13 @@ async function doLogout() {
 
 function iniciarApp(user) {
   document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('appScreen').style.display = 'block';
   document.getElementById('topUser').textContent = 'Bienvenido, ' + user.email.split('@')[0].toUpperCase();
-  go('vencimientos', 'Alerta de vencimientos', 'Herramientas');
+  // Mostrar avatar con inicial
+  const nombre = user.email.split('@')[0].toUpperCase();
+  const avatarEl = document.getElementById('topAvatar');
+  if (avatarEl) avatarEl.textContent = nombre.charAt(0);
+  // Mostrar selector de módulo
+  mostrarSelectorModulo();
 }
 
 // ============================================================
@@ -873,6 +1240,8 @@ function go(pageId, pageName, section) {
     if (n.getAttribute('onclick') && n.getAttribute('onclick').includes("'" + pageId + "'")) n.classList.add('active');
   });
   // Cargar datos
+  if (pageId === 'rndc-config') { setTimeout(cargarConfigRNDC, 100); }
+  if (pageId === 'rndc-manifiestos') { setTimeout(ldRNDCManifiestos, 100); }
   const loaders = {
     vencimientos: ldVencimientos, vehiculos: ldVehiculos,
     conductores: ldConductores, propietarios: ldPropietarios,
@@ -1217,12 +1586,389 @@ async function ldVencimientos() {
 }
 
 // ============================================================
+// MÓDULO SCREEN
+// ============================================================
+function mostrarSelectorModulo() {
+  document.getElementById('moduleScreen').style.display = 'flex';
+}
+
+function elegirModulo(mod) {
+  document.getElementById('moduleScreen').style.display = 'none';
+  document.getElementById('appScreen').style.display = 'block';
+  if (mod === 'rndc') {
+    go('rndc-manifiestos', 'Manifiestos RNDC', 'RNDC');
+  } else if (mod === 'terceros') {
+    go('conductores', 'Conductores', 'Terceros');
+  } else {
+    go('vencimientos', 'Alerta de vencimientos', 'Herramientas');
+  }
+}
+
+// ============================================================
+// RNDC FUNCTIONS
+// ============================================================
+async function ldRNDCManifiestos() {
+  const desde = document.getElementById('rndc-desde')?.value;
+  const hasta = document.getElementById('rndc-hasta')?.value;
+  const estadoFiltro = document.getElementById('rndc-estado-filtro')?.value;
+  let query = db.from('manifiestos').select('*, clientes(nombre), vehiculos(placa), conductores(nombre)').order('created_at', {ascending:false});
+  if (desde) query = query.gte('fecha', desde);
+  if (hasta) query = query.lte('fecha', hasta);
+  if (estadoFiltro) query = query.eq('rndc_estado', estadoFiltro);
+  const { data } = await query;
+  if (!data) return;
+  const total = data.length;
+  const pend = data.filter(m => !m.rndc_estado || m.rndc_estado === 'pendiente').length;
+  const env = data.filter(m => m.rndc_estado === 'enviado').length;
+  const err = data.filter(m => m.rndc_estado === 'error').length;
+  document.getElementById('rndc-total').textContent = total;
+  document.getElementById('rndc-pendientes').textContent = pend;
+  document.getElementById('rndc-enviados').textContent = env;
+  document.getElementById('rndc-errores').textContent = err;
+  const tb = document.querySelector('#rndc-tabla tbody');
+  if (!tb) return;
+  if (!data.length) { tb.innerHTML = '<tr><td colspan="12" class="tbl-empty"><div>Sin manifiestos en el rango seleccionado</div></td></tr>'; return; }
+  tb.innerHTML = data.map(m => {
+    const est = m.rndc_estado || 'pendiente';
+    const cls = est==='enviado'?'b-green':est==='error'?'b-red':'b-amber';
+    const autorizacion = m.rndc_autorizacion || '-';
+    return `<tr>
+      <td><input type="checkbox" class="rndc-check" data-id="${m.id}"></td>
+      <td><strong>${m.numero_manifiesto}</strong></td>
+      <td>${m.agencia||'-'}</td><td>${m.fecha}</td>
+      <td>${m.clientes?.nombre||'-'}</td>
+      <td>${m.vehiculos?.placa||'-'}</td>
+      <td>${m.conductores?.nombre||'-'}</td>
+      <td>${m.origen||'-'}</td><td>${m.destino||'-'}</td>
+      <td><span class="badge ${cls}">${est}</span></td>
+      <td style="font-size:11px;color:#2563a8;">${autorizacion}</td>
+      <td><button class="act-btn" onclick="enviarRNDCUno('${m.id}','${m.numero_manifiesto}')" title="Enviar al RNDC">📡</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function toggleRNDCAll(cb) {
+  document.querySelectorAll('.rndc-check').forEach(c => c.checked = cb.checked);
+}
+
+// ============================================================
+// RNDC — Conexión real con Edge Function Supabase → Ministerio
+// ============================================================
+const RNDC_EDGE = 'https://cfgcuzdkgidudbnfdlxn.supabase.co/functions/v1/rndc-enviar';
+
+function getRNDCConfig() {
+  try {
+    const cfg = JSON.parse(localStorage.getItem('rndc_config') || '{}');
+    if (!cfg.usuario || !cfg.nit) return null;
+    return {
+      usuario:       cfg.usuario,
+      password:      cfg.pass,
+      nit:           cfg.nit,
+      codigoEmpresa: cfg.codigo,
+      agencia:       cfg.agencia || '001',
+      modo:          cfg.modo || 'produccion',
+    };
+  } catch(e) { return null; }
+}
+
+async function llamarEdgeRNDC(manifiesto) {
+  const config = getRNDCConfig();
+  if (!config) {
+    showToast('⚠ Configura las credenciales RNDC primero (RNDC → Configuración)', false);
+    return null;
+  }
+  const resp = await fetch(RNDC_EDGE, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + SB_KEY,
+    },
+    body: JSON.stringify({ manifiesto, config }),
+  });
+  if (!resp.ok) {
+    const txt = await resp.text();
+    return { ok: false, mensaje: 'Error HTTP ' + resp.status + ': ' + txt };
+  }
+  return await resp.json();
+}
+
+async function enviarRNDCUno(id, numero) {
+  if (!confirm('¿Enviar manifiesto ' + numero + ' al RNDC del Ministerio de Transporte?')) return;
+
+  // Cargar datos completos del manifiesto
+  const { data: m } = await db.from('manifiestos')
+    .select('*, clientes(nombre,nit_cedula), vehiculos(placa), conductores(nombre,cedula)')
+    .eq('id', id).single();
+  if (!m) { showToast('❌ No se encontró el manifiesto', false); return; }
+
+  showToast('📡 Enviando manifiesto ' + numero + ' al RNDC...', true);
+
+  const payload = {
+    numero_manifiesto: m.numero_manifiesto,
+    fecha:             m.fecha,
+    placa:             m.vehiculos?.placa || '',
+    cedula_conductor:  m.conductores?.cedula || '',
+    nit_cliente:       m.clientes?.nit_cedula || '',
+    nombre_cliente:    m.clientes?.nombre || '',
+    origen:            m.origen || '',
+    destino:           m.destino || '',
+    valor_flete:       m.valor_flete || 0,
+    descripcion:       m.descripcion_carga || '',
+  };
+
+  const result = await llamarEdgeRNDC(payload);
+  if (!result) return;
+
+  if (result.ok) {
+    await db.from('manifiestos').update({
+      rndc_estado:        'enviado',
+      rndc_autorizacion:  result.autorizacion,
+      rndc_fecha_envio:   new Date().toISOString(),
+    }).eq('id', id);
+    showToast('✅ Radicado en RNDC. Autorización: ' + result.autorizacion, true);
+  } else {
+    await db.from('manifiestos').update({
+      rndc_estado:       'error',
+      rndc_error_msg:    result.mensaje,
+    }).eq('id', id);
+    showToast('❌ RNDC rechazó el manifiesto: ' + result.mensaje, false);
+  }
+  ldRNDCManifiestos();
+}
+
+async function enviarRNDCSeleccionados() {
+  const checks = [...document.querySelectorAll('.rndc-check:checked')];
+  if (!checks.length) { showToast('Selecciona al menos un manifiesto', false); return; }
+  if (!confirm('¿Enviar ' + checks.length + ' manifiestos seleccionados al RNDC?')) return;
+
+  let ok = 0, errores = 0;
+  showToast('📡 Enviando ' + checks.length + ' manifiestos...', true);
+
+  for (const cb of checks) {
+    const id = cb.dataset.id;
+    const { data: m } = await db.from('manifiestos')
+      .select('*, clientes(nombre,nit_cedula), vehiculos(placa), conductores(nombre,cedula)')
+      .eq('id', id).single();
+    if (!m) { errores++; continue; }
+
+    const payload = {
+      numero_manifiesto: m.numero_manifiesto,
+      fecha:             m.fecha,
+      placa:             m.vehiculos?.placa || '',
+      cedula_conductor:  m.conductores?.cedula || '',
+      nit_cliente:       m.clientes?.nit_cedula || '',
+      nombre_cliente:    m.clientes?.nombre || '',
+      origen:            m.origen || '',
+      destino:           m.destino || '',
+      valor_flete:       m.valor_flete || 0,
+      descripcion:       m.descripcion_carga || '',
+    };
+
+    const result = await llamarEdgeRNDC(payload);
+    if (result?.ok) {
+      await db.from('manifiestos').update({
+        rndc_estado:       'enviado',
+        rndc_autorizacion: result.autorizacion,
+        rndc_fecha_envio:  new Date().toISOString(),
+      }).eq('id', id);
+      ok++;
+    } else {
+      await db.from('manifiestos').update({
+        rndc_estado:    'error',
+        rndc_error_msg: result?.mensaje || 'Sin respuesta',
+      }).eq('id', id);
+      errores++;
+    }
+  }
+  showToast('✅ ' + ok + ' enviados al RNDC' + (errores ? ' | ❌ ' + errores + ' con error' : ''), ok > 0);
+  ldRNDCManifiestos();
+}
+
+async function enviarRNDCTodos() {
+  if (!confirm('¿Enviar TODOS los manifiestos pendientes al RNDC del Ministerio?')) return;
+  const { data } = await db.from('manifiestos')
+    .select('*, clientes(nombre,nit_cedula), vehiculos(placa), conductores(nombre,cedula)')
+    .or('rndc_estado.is.null,rndc_estado.eq.pendiente,rndc_estado.eq.error');
+  if (!data?.length) { showToast('No hay manifiestos pendientes de envío', false); return; }
+
+  let ok = 0, errores = 0;
+  showToast('📡 Iniciando envío masivo: ' + data.length + ' manifiestos...', true);
+
+  for (const m of data) {
+    const payload = {
+      numero_manifiesto: m.numero_manifiesto,
+      fecha:             m.fecha,
+      placa:             m.vehiculos?.placa || '',
+      cedula_conductor:  m.conductores?.cedula || '',
+      nit_cliente:       m.clientes?.nit_cedula || '',
+      nombre_cliente:    m.clientes?.nombre || '',
+      origen:            m.origen || '',
+      destino:           m.destino || '',
+      valor_flete:       m.valor_flete || 0,
+      descripcion:       m.descripcion_carga || '',
+    };
+
+    const result = await llamarEdgeRNDC(payload);
+    if (result?.ok) {
+      await db.from('manifiestos').update({
+        rndc_estado:       'enviado',
+        rndc_autorizacion: result.autorizacion,
+        rndc_fecha_envio:  new Date().toISOString(),
+      }).eq('id', m.id);
+      ok++;
+    } else {
+      await db.from('manifiestos').update({
+        rndc_estado:    'error',
+        rndc_error_msg: result?.mensaje || 'Sin respuesta',
+      }).eq('id', m.id);
+      errores++;
+    }
+  }
+  showToast('✅ Envío masivo: ' + ok + ' radicados' + (errores ? ' | ❌ ' + errores + ' errores' : ''), ok > 0);
+  ldRNDCManifiestos();
+}
+
+function guardarConfigRNDC() {
+  const cfg = {
+    nit: document.getElementById('rndc-nit').value,
+    codigo: document.getElementById('rndc-codigo').value,
+    usuario: document.getElementById('rndc-user').value,
+    pass: document.getElementById('rndc-pass').value,
+    url: document.getElementById('rndc-url').value,
+    agencia: document.getElementById('rndc-agencia').value,
+    modo: document.getElementById('rndc-modo').value,
+  };
+  localStorage.setItem('rndc_config', JSON.stringify(cfg));
+  showToast('✅ Configuración RNDC guardada', true);
+  document.getElementById('rndc-conn-badge').style.background = '#d3f4e7';
+  document.getElementById('rndc-conn-badge').style.color = '#1a7a50';
+  document.getElementById('rndc-conn-badge').textContent = '✓ RNDC configurado';
+}
+
+async function probarConexionRNDC() {
+  const res = document.getElementById('rndc-test-result');
+  res.style.display = 'block';
+  res.style.background = '#fef3d0';
+  res.style.color = '#8a5a00';
+  res.textContent = '⏳ Probando conexión con la Edge Function y el RNDC...';
+
+  const config = getRNDCConfig();
+  if (!config) {
+    res.style.background = '#ffe0de';
+    res.style.color = '#8a1a1a';
+    res.textContent = '❌ Guarda primero las credenciales antes de probar la conexión.';
+    return;
+  }
+
+  try {
+    const resp = await fetch(RNDC_EDGE, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + SB_KEY,
+      },
+      body: JSON.stringify({
+        manifiesto: {
+          numero_manifiesto: 'TEST-000',
+          fecha: new Date().toISOString().split('T')[0],
+          placa: 'TEST01', cedula_conductor: '0', nit_cliente: '0',
+          nombre_cliente: 'PRUEBA', origen: 'Bogotá', destino: 'Medellín',
+          valor_flete: 0, descripcion: 'Prueba de conexión',
+        },
+        config,
+      }),
+    });
+    const data = await resp.json();
+    if (resp.ok) {
+      res.style.background = '#d3f4e7';
+      res.style.color = '#1a7a50';
+      res.textContent = '✅ Edge Function activa. Respuesta del ministerio: ' + (data.mensaje || 'Conexión establecida. Verifica las credenciales con un manifiesto real.');
+    } else {
+      res.style.background = '#ffe0de';
+      res.style.color = '#8a1a1a';
+      res.textContent = '❌ ' + (data.mensaje || 'Error al conectar');
+    }
+  } catch(e) {
+    res.style.background = '#ffe0de';
+    res.style.color = '#8a1a1a';
+    res.textContent = '❌ Error de red: ' + e.message;
+  }
+}
+
+function cargarConfigRNDC() {
+  try {
+    const cfg = JSON.parse(localStorage.getItem('rndc_config') || '{}');
+    if (cfg.nit) document.getElementById('rndc-nit').value = cfg.nit;
+    if (cfg.codigo) document.getElementById('rndc-codigo').value = cfg.codigo;
+    if (cfg.usuario) document.getElementById('rndc-user').value = cfg.usuario;
+    if (cfg.url) document.getElementById('rndc-url').value = cfg.url;
+    if (cfg.agencia) document.getElementById('rndc-agencia').value = cfg.agencia;
+    if (cfg.modo) document.getElementById('rndc-modo').value = cfg.modo;
+    if (cfg.nit) {
+      document.getElementById('rndc-conn-badge').style.background = '#d3f4e7';
+      document.getElementById('rndc-conn-badge').style.color = '#1a7a50';
+      document.getElementById('rndc-conn-badge').textContent = '✓ RNDC configurado';
+    }
+  } catch(e) {}
+}
+
+// ============================================================
+// UIAF
+// ============================================================
+async function generarUIAF() {
+  const anio = document.getElementById('uiaf-anio').value;
+  const trim = document.getElementById('uiaf-trim').value;
+  const meses = { '1':[1,2,3],'2':[4,5,6],'3':[7,8,9],'4':[10,11,12] };
+  const ms = meses[trim];
+  const desde = anio + '-' + String(ms[0]).padStart(2,'0') + '-01';
+  const hasta = anio + '-' + String(ms[2]).padStart(2,'0') + '-31';
+  const { data } = await db.from('manifiestos').select('*, clientes(nombre,nit_cedula), vehiculos(placa), conductores(nombre,cedula)').gte('fecha',desde).lte('fecha',hasta);
+  const res = document.getElementById('uiaf-result');
+  if (!data) { res.innerHTML = '<span style="color:#e5534b">Error al cargar datos</span>'; return; }
+  const total = data.reduce((s,m)=>s+(parseFloat(m.valor_flete)||0), 0);
+  const trimLabel = ['','1° Trim (Ene-Mar)','2° Trim (Abr-Jun)','3° Trim (Jul-Sep)','4° Trim (Oct-Dic)'][trim];
+  res.innerHTML = `
+    <div style="text-align:left;">
+      <div style="font-weight:700;font-size:13px;color:#1a2a4a;margin-bottom:12px;">📊 Reporte UIAF — ${trimLabel} ${anio}</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;">
+        <div style="background:white;border:0.5px solid #dde3ec;border-radius:7px;padding:12px;text-align:center;">
+          <div style="font-size:22px;font-weight:700;color:#2563a8;">${data.length}</div>
+          <div style="font-size:11px;color:#6b7a99;">Manifiestos</div>
+        </div>
+        <div style="background:white;border:0.5px solid #dde3ec;border-radius:7px;padding:12px;text-align:center;">
+          <div style="font-size:22px;font-weight:700;color:#22a06b;">$${total.toLocaleString('es-CO')}</div>
+          <div style="font-size:11px;color:#6b7a99;">Valor total fletes</div>
+        </div>
+        <div style="background:white;border:0.5px solid #dde3ec;border-radius:7px;padding:12px;text-align:center;">
+          <div style="font-size:22px;font-weight:700;color:#e8a020;">${new Set(data.map(m=>m.clientes?.nit_cedula)).size}</div>
+          <div style="font-size:11px;color:#6b7a99;">Clientes únicos</div>
+        </div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:11px;">
+        <thead><tr style="background:#f0f3f8;"><th style="padding:7px;text-align:left;border-bottom:1px solid #dde3ec;">Manifiesto</th><th style="padding:7px;text-align:left;">Fecha</th><th style="padding:7px;text-align:left;">Cliente</th><th style="padding:7px;text-align:left;">NIT/CC</th><th style="padding:7px;text-align:left;">Placa</th><th style="padding:7px;text-align:right;">Valor flete</th></tr></thead>
+        <tbody>${data.map(m=>`<tr><td style="padding:6px 7px;border-bottom:0.5px solid #f0f3f8;">${m.numero_manifiesto}</td><td style="padding:6px 7px;border-bottom:0.5px solid #f0f3f8;">${m.fecha}</td><td style="padding:6px 7px;border-bottom:0.5px solid #f0f3f8;">${m.clientes?.nombre||'-'}</td><td style="padding:6px 7px;border-bottom:0.5px solid #f0f3f8;">${m.clientes?.nit_cedula||'-'}</td><td style="padding:6px 7px;border-bottom:0.5px solid #f0f3f8;">${m.vehiculos?.placa||'-'}</td><td style="padding:6px 7px;border-bottom:0.5px solid #f0f3f8;text-align:right;">${m.valor_flete?'$'+parseInt(m.valor_flete).toLocaleString():'-'}</td></tr>`).join('')}</tbody>
+      </table>
+      <div style="margin-top:12px;text-align:right;"><button onclick="exportarUIAF()" style="padding:7px 16px;background:#2563a8;color:white;border:none;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;">📥 Exportar CSV</button></div>
+    </div>`;
+}
+
+function exportarUIAF() {
+  showToast('📥 Exportando reporte UIAF...', true);
+}
+
+function generarEISS() {
+  showToast('📊 Generando planilla EISS...', true);
+}
+
+// ============================================================
 // INIT
 // ============================================================
 window.addEventListener('load', async () => {
   document.getElementById('sysDate').textContent = new Date().toLocaleDateString('es-CO');
   const { data } = await db.auth.getSession();
-  if (data?.session) iniciarApp(data.session.user);
+  if (data?.session) {
+    iniciarApp(data.session.user);
+  }
 });
 
 document.getElementById('uInput').addEventListener('keydown', e => { if (e.key==='Enter') doLogin(); });
