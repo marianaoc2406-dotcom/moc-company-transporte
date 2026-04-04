@@ -9,6 +9,26 @@
 <body>
 
 <style>
+.modal-bg{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.55);z-index:2000;align-items:center;justify-content:center;}
+.modal-box{background:white;border-radius:10px;padding:24px;width:580px;max-width:96vw;max-height:92vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.18);}
+.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #eef0f5;}
+.modal-title{font-size:13px;font-weight:700;color:#1a2a4a;}
+.modal-x{background:none;border:none;font-size:18px;cursor:pointer;color:#6b7a99;padding:0 4px;}
+.mrow{display:grid;gap:12px;margin-bottom:12px;}
+.mrow-2{grid-template-columns:1fr 1fr;}
+.mrow-3{grid-template-columns:1fr 1fr 1fr;}
+.mrow-1{grid-template-columns:1fr;}
+.mfield label{display:block;font-size:10px;font-weight:700;color:#6b7a99;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.05em;}
+.mfield input,.mfield select{width:100%;padding:7px 10px;border:1px solid #c8d0df;border-radius:5px;font-size:12px;font-family:'Segoe UI',Arial,sans-serif;color:#1a2a4a;outline:none;}
+.mfield input:focus,.mfield select:focus{border-color:#2563a8;}
+.mact{margin-top:16px;display:flex;gap:8px;justify-content:flex-end;padding-top:12px;border-top:1px solid #eef0f5;}
+.mbtn-save{padding:8px 20px;background:#2563a8;color:white;border:none;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;}
+.mbtn-save:hover{background:#1a4a8a;}
+.mbtn-cancel{padding:8px 14px;background:#f0f3f8;color:#6b7a99;border:none;border-radius:5px;font-size:12px;cursor:pointer;}
+</style>
+
+
+<style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',Arial,sans-serif;}
 body{background:#f4f6f9;}
 
@@ -510,7 +530,7 @@ tr:hover td{background:#f5f7fb;}
           </div>
           <div style="display:flex;gap:8px;">
             <button class="btn-export">Exportar Excel</button>
-            <button class="btn-new">Legalizar anticipo</button>
+            <button class="btn-new" onclick="abrirModal('modal-anticipo')">Legalizar anticipo</button>
           </div>
         </div>
         <div class="counters">
@@ -585,594 +605,179 @@ function go(pageId, pageName, section){
   document.querySelectorAll('.nav-item').forEach(n=>{
     if(n.getAttribute('onclick')&&n.getAttribute('onclick').includes("'"+pageId+"'")){n.classList.add('active');}
   });
-  // Cargar datos de Supabase
-  const loaders = {
-    vencimientos: loadVencimientos,
-    vehiculos: loadVehiculos,
-    conductores: loadConductores,
-    propietarios: loadPropietarios,
-    manifiestos: loadManifiestos,
-    remesas: loadRemesas,
-    anticipos: loadAnticipos,
-  };
-  if (typeof loadVencimientos !== 'undefined' && loaders[pageId]) loaders[pageId]();
 }
 </script>
 
-<script>
-// ============================================================
-// SUPABASE CONFIG - TransportesMOC
-// ============================================================
-const SB_URL = 'https://cfgcuzdkgidudbnfdlxn.supabase.co';
-const SB_KEY = 'sb_publishable_f5x8xoeSk2TOAq8n15lcZQ_bLIQcm7Z';
-const { createClient } = supabase;
-const db = createClient(SB_URL, SB_KEY);
-
-let USER_SESSION = null;
-
-// ============================================================
-// AUTH - Login real con Supabase Auth
-// ============================================================
-async function doLogin() {
-  const email = document.getElementById('uInput').value.trim();
-  const password = document.getElementById('pInput').value;
-
-  if (!email || !password) {
-    alert('Ingresa tu correo y contraseña');
-    return;
-  }
-
-  const { data, error } = await db.auth.signInWithPassword({ email, password });
-
-  if (error) {
-    document.querySelector('.login-hint').textContent = '❌ ' + error.message;
-    document.querySelector('.login-hint').style.color = '#e5534b';
-    return;
-  }
-
-  USER_SESSION = data.user;
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('appScreen').style.display = 'block';
-  document.getElementById('topUser').textContent = 'Bienvenido, ' + (data.user.email.split('@')[0].toUpperCase());
-  go('vencimientos', 'Alerta de vencimientos', 'Herramientas');
-  loadVencimientos();
-  loadDashboardStats();
-}
-
-async function doLogout() {
-  await db.auth.signOut();
-  USER_SESSION = null;
-  document.getElementById('appScreen').style.display = 'none';
-  document.getElementById('loginScreen').style.display = 'block';
-}
-
-// Al cargar verificar sesión activa
-window.addEventListener('load', async () => {
-  document.getElementById('sysDate').textContent = new Date().toLocaleDateString('es-CO');
-  const { data } = await db.auth.getSession();
-  if (data?.session) {
-    USER_SESSION = data.session.user;
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('appScreen').style.display = 'block';
-    document.getElementById('topUser').textContent = 'Bienvenido, ' + (USER_SESSION.email.split('@')[0].toUpperCase());
-    go('vencimientos', 'Alerta de vencimientos', 'Herramientas');
-    loadVencimientos();
-    loadDashboardStats();
-  }
-});
-
-// ============================================================
-// TOAST
-// ============================================================
-function toast(msg, ok=true) {
-  let t = document.getElementById('moc-toast');
-  if (!t) {
-    t = document.createElement('div');
-    t.id = 'moc-toast';
-    t.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#1a2a4a;color:#fff;padding:10px 18px;border-radius:7px;font-size:12px;z-index:9999;display:none;';
-    document.body.appendChild(t);
-  }
-  t.textContent = msg;
-  t.style.background = ok ? '#22a06b' : '#e5534b';
-  t.style.display = 'block';
-  setTimeout(() => t.style.display = 'none', 3000);
-}
-
-// ============================================================
-// VENCIMIENTOS
-// ============================================================
-async function loadVencimientos() {
-  const hoy = new Date().toISOString().split('T')[0];
-  const en30 = new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0];
-
-  const { data } = await db.from('vehiculos').select('*, conductores(nombre, cedula)').order('soat_vencimiento');
-
-  if (!data) return;
-
-  const total = data.length;
-  const vencidos = data.filter(v => v.soat_vencimiento && v.soat_vencimiento < hoy).length;
-  const proximos = data.filter(v => v.soat_vencimiento && v.soat_vencimiento >= hoy && v.soat_vencimiento <= en30).length;
-
-  // Actualizar contadores
-  const pg = document.getElementById('page-vencimientos');
-  if (!pg) return;
-
-  const stats = pg.querySelector('.rndc-stat-grid');
-  if (stats) {
-    stats.innerHTML = `
-      <div class="rndc-stat"><div class="rndc-stat-val" style="color:#2563a8">${total}</div><div class="rndc-stat-lbl">Total</div></div>
-      <div class="rndc-stat"><div class="rndc-stat-val rndc-red">${vencidos}</div><div class="rndc-stat-lbl">Vencidas</div></div>
-      <div class="rndc-stat"><div class="rndc-stat-val rndc-amber">${proximos}</div><div class="rndc-stat-lbl">Por vencer 30 días</div></div>
-    `;
-  }
-
-  const tbody = pg.querySelector('tbody');
-  if (!tbody) return;
-
-  if (!data.length) {
-    tbody.innerHTML = '<tr><td colspan="8" class="tbl-empty"><div>No hay vehículos registrados</div></td></tr>';
-    return;
-  }
-
-  tbody.innerHTML = data.map(v => {
-    const est = !v.soat_vencimiento ? 'pendiente' : v.soat_vencimiento < hoy ? 'vencido' : v.soat_vencimiento <= en30 ? 'próximo' : 'vigente';
-    const cls = est === 'vencido' ? 'b-red' : est === 'próximo' ? 'b-amber' : 'b-green';
-    return `<tr>
-      <td>${v.placa}</td>
-      <td>${v.conductores?.cedula || '-'}</td>
-      <td>${v.conductores?.nombre || '-'}</td>
-      <td>-</td>
-      <td>${v.soat_vencimiento || '-'}</td>
-      <td>-</td>
-      <td>${v.tecnomecanica_vencimiento || '-'}</td>
-      <td><span class="badge ${cls}">${est}</span></td>
-    </tr>`;
-  }).join('');
-}
-
-// ============================================================
-// VEHÍCULOS
-// ============================================================
-async function loadVehiculos() {
-  const { data } = await db.from('vehiculos').select('*, propietarios!propietario_id(nombre), conductores(nombre)').order('placa');
-
-  const pg = document.getElementById('page-vehiculos');
-  if (!pg || !data) return;
-
-  const counters = pg.querySelectorAll('.counter-val');
-  const total = data.length;
-  const hab = data.filter(v => v.estado === 'habilitado').length;
-  const inhab = data.filter(v => v.estado === 'inhabilitado').length;
-  const ret = data.filter(v => v.estado === 'retirado').length;
-  if (counters[0]) counters[0].textContent = total;
-  if (counters[1]) counters[1].textContent = hab;
-  if (counters[2]) counters[2].textContent = inhab;
-  if (counters[3]) counters[3].textContent = ret;
-
-  const tbody = pg.querySelector('tbody');
-  if (!tbody) return;
-
-  if (!data.length) {
-    tbody.innerHTML = '<tr><td colspan="10" class="tbl-empty"><div class="tbl-empty-icon">🚛</div><div>Sin registros encontrados</div></td></tr>';
-    return;
-  }
-
-  tbody.innerHTML = data.map(v => {
-    const cls = v.estado === 'habilitado' ? 'b-green' : v.estado === 'inhabilitado' ? 'b-red' : 'b-gray';
-    return `<tr>
-      <td><strong>${v.placa}</strong></td>
-      <td>${v.clase || '-'}</td>
-      <td>${v.marca || '-'}</td>
-      <td>${v.linea || '-'}</td>
-      <td>${v.color || '-'}</td>
-      <td>${v.propietarios?.nombre || '-'}</td>
-      <td>-</td>
-      <td>${v.conductores?.nombre || '-'}</td>
-      <td><span class="badge ${cls}">${v.estado}</span></td>
-      <td><button class="act-btn" title="Editar">✏️</button></td>
-    </tr>`;
-  }).join('');
-}
-
-// ============================================================
-// CONDUCTORES
-// ============================================================
-async function loadConductores() {
-  const { data } = await db.from('conductores').select('*').order('nombre');
-
-  const pg = document.getElementById('page-conductores');
-  if (!pg || !data) return;
-
-  const counters = pg.querySelectorAll('.counter-val');
-  const total = data.length;
-  const act = data.filter(c => c.estado === 'activo').length;
-  const inact = data.filter(c => c.estado === 'inactivo').length;
-  if (counters[0]) counters[0].textContent = total;
-  if (counters[1]) counters[1].textContent = act;
-  if (counters[2]) counters[2].textContent = inact;
-
-  const tbody = pg.querySelector('tbody');
-  if (!tbody) return;
-
-  if (!data.length) {
-    tbody.innerHTML = '<tr><td colspan="9" class="tbl-empty"><div class="tbl-empty-icon">👤</div><div>Sin conductores registrados</div></td></tr>';
-    return;
-  }
-
-  tbody.innerHTML = data.map(c => {
-    const cls = c.estado === 'activo' ? 'b-green' : 'b-red';
-    return `<tr>
-      <td>${c.cedula}</td>
-      <td><strong>${c.nombre}</strong></td>
-      <td>${c.telefono || '-'}</td>
-      <td>${c.licencia_numero || '-'}</td>
-      <td>${c.licencia_categoria || '-'}</td>
-      <td>${c.licencia_vencimiento || '-'}</td>
-      <td>${c.placa_asignada || '-'}</td>
-      <td><span class="badge ${cls}">${c.estado}</span></td>
-      <td><button class="act-btn" title="Editar">✏️</button></td>
-    </tr>`;
-  }).join('');
-}
-
-// ============================================================
-// PROPIETARIOS
-// ============================================================
-async function loadPropietarios() {
-  const { data } = await db.from('propietarios').select('*').order('nombre');
-
-  const pg = document.getElementById('page-propietarios');
-  if (!pg || !data) return;
-
-  const counters = pg.querySelectorAll('.counter-val');
-  if (counters[0]) counters[0].textContent = data.length;
-  if (counters[1]) counters[1].textContent = data.filter(p => p.estado === 'habilitado').length;
-  if (counters[2]) counters[2].textContent = data.filter(p => p.estado === 'inhabilitado').length;
-
-  const tbody = pg.querySelector('tbody');
-  if (!tbody) return;
-
-  if (!data.length) {
-    tbody.innerHTML = '<tr><td colspan="7" class="tbl-empty"><div class="tbl-empty-icon">👥</div><div>Sin propietarios registrados</div></td></tr>';
-    return;
-  }
-
-  tbody.innerHTML = data.map(p => {
-    const cls = p.estado === 'habilitado' ? 'b-green' : 'b-red';
-    return `<tr>
-      <td>${p.nit_cedula}</td>
-      <td><strong>${p.nombre}</strong></td>
-      <td>${p.tipo_persona}</td>
-      <td>${p.telefono || '-'}</td>
-      <td>${p.ciudad || '-'}</td>
-      <td><span class="badge ${cls}">${p.estado}</span></td>
-      <td><button class="act-btn">✏️</button></td>
-    </tr>`;
-  }).join('');
-}
-
-// ============================================================
-// MANIFIESTOS
-// ============================================================
-async function loadManifiestos() {
-  const { data } = await db.from('manifiestos').select('*, clientes(nombre), vehiculos(placa), conductores(nombre)').order('created_at', {ascending: false});
-
-  const pg = document.getElementById('page-manifiestos');
-  if (!pg || !data) return;
-
-  const counters = pg.querySelectorAll('.counter-val');
-  if (counters[0]) counters[0].textContent = data.length;
-  if (counters[1]) counters[1].textContent = data.filter(m => m.estado === 'en_transito').length;
-  if (counters[2]) counters[2].textContent = data.filter(m => m.estado === 'entregado').length;
-  if (counters[3]) counters[3].textContent = data.filter(m => m.rndc_estado === 'enviado').length;
-
-  const tbody = pg.querySelector('tbody');
-  if (!tbody) return;
-
-  if (!data.length) {
-    tbody.innerHTML = '<tr><td colspan="11" class="tbl-empty"><div class="tbl-empty-icon">📦</div><div>Sin manifiestos registrados</div></td></tr>';
-    return;
-  }
-
-  tbody.innerHTML = data.map(m => {
-    const cls = m.estado === 'entregado' ? 'b-green' : m.estado === 'en_transito' ? 'b-blue' : 'b-gray';
-    const rndc = m.rndc_estado === 'enviado' ? '<span class="badge b-green">✓ RNDC</span>' : '<span class="badge b-amber">Pendiente</span>';
-    return `<tr>
-      <td><strong>${m.numero_manifiesto}</strong></td>
-      <td>${m.agencia || '-'}</td>
-      <td>${m.fecha}</td>
-      <td>${m.clientes?.nombre || '-'}</td>
-      <td>${m.vehiculos?.placa || '-'}</td>
-      <td>${m.conductores?.nombre || '-'}</td>
-      <td>${m.origen}</td>
-      <td>${m.destino}</td>
-      <td>${m.valor_flete ? '$'+parseInt(m.valor_flete).toLocaleString() : '-'}</td>
-      <td><span class="badge ${cls}">${m.estado}</span></td>
-      <td>${rndc}</td>
-    </tr>`;
-  }).join('');
-}
-
-// ============================================================
-// REMESAS
-// ============================================================
-async function loadRemesas() {
-  const { data } = await db.from('remesas').select('*, clientes(nombre), vehiculos(placa), manifiestos(numero_manifiesto)').order('created_at', {ascending: false});
-
-  const pg = document.getElementById('page-remesas');
-  if (!pg || !data) return;
-
-  const counters = pg.querySelectorAll('.counter-val');
-  if (counters[0]) counters[0].textContent = data.length;
-  if (counters[1]) counters[1].textContent = data.filter(r => r.estado === 'planillada').length;
-  if (counters[2]) counters[2].textContent = data.filter(r => r.estado === 'entregada').length;
-
-  const tbody = pg.querySelector('tbody');
-  if (!tbody) return;
-
-  if (!data.length) {
-    tbody.innerHTML = '<tr><td colspan="10" class="tbl-empty"><div class="tbl-empty-icon">📋</div><div>Sin remesas registradas</div></td></tr>';
-    return;
-  }
-
-  tbody.innerHTML = data.map(r => {
-    const cls = r.estado === 'entregada' ? 'b-green' : r.estado === 'planillada' ? 'b-blue' : 'b-gray';
-    return `<tr>
-      <td><strong>${r.numero_remesa}</strong></td>
-      <td>${r.manifiestos?.numero_manifiesto || '-'}</td>
-      <td>${r.agencia || '-'}</td>
-      <td>${r.fecha}</td>
-      <td>${r.clientes?.nombre || '-'}</td>
-      <td>${r.vehiculos?.placa || '-'}</td>
-      <td>${r.origen || '-'}</td>
-      <td>${r.destino || '-'}</td>
-      <td>${r.flete ? '$'+parseInt(r.flete).toLocaleString() : '-'}</td>
-      <td><span class="badge ${cls}">${r.estado}</span></td>
-    </tr>`;
-  }).join('');
-}
-
-// ============================================================
-// ANTICIPOS
-// ============================================================
-async function loadAnticipos() {
-  const { data } = await db.from('anticipos').select('*, conductores(nombre), manifiestos(numero_manifiesto)').order('created_at', {ascending: false});
-
-  const pg = document.getElementById('page-anticipos');
-  if (!pg || !data) return;
-
-  const counters = pg.querySelectorAll('.counter-val');
-  if (counters[0]) counters[0].textContent = data.length;
-  if (counters[1]) counters[1].textContent = data.filter(a => a.estado === 'guardado').length;
-  if (counters[2]) counters[2].textContent = data.filter(a => a.estado === 'contabilizado').length;
-  if (counters[3]) counters[3].textContent = data.filter(a => a.estado === 'anulado').length;
-
-  const tbody = pg.querySelector('tbody');
-  if (!tbody) return;
-
-  if (!data.length) {
-    tbody.innerHTML = '<tr><td colspan="8" class="tbl-empty"><div class="tbl-empty-icon">💰</div><div>Sin anticipos registrados</div></td></tr>';
-    return;
-  }
-
-  tbody.innerHTML = data.map(a => {
-    const cls = a.estado === 'contabilizado' ? 'b-green' : a.estado === 'anulado' ? 'b-red' : 'b-blue';
-    return `<tr>
-      <td><strong>${a.numero_documento}</strong></td>
-      <td>${a.fecha}</td>
-      <td>${a.conductores?.nombre || '-'}</td>
-      <td>${a.conductores?.nombre || '-'}</td>
-      <td>${a.descuento ? '$'+parseInt(a.descuento).toLocaleString() : '$0'}</td>
-      <td>$${parseInt(a.valor).toLocaleString()}</td>
-      <td><span class="badge ${cls}">${a.estado}</span></td>
-      <td><button class="act-btn">✏️</button></td>
-    </tr>`;
-  }).join('');
-}
-
-// ============================================================
-// DASHBOARD STATS
-// ============================================================
-async function loadDashboardStats() {
-  const [v, c, m, r] = await Promise.all([
-    db.from('vehiculos').select('id', {count: 'exact'}),
-    db.from('conductores').select('id', {count: 'exact'}),
-    db.from('manifiestos').select('id', {count: 'exact'}),
-    db.from('remesas').select('id', {count: 'exact'})
-  ]);
-
-  const cards = document.querySelectorAll('.dash-card-value');
-  if (cards[0]) cards[0].textContent = v.count || 0;
-  if (cards[1]) cards[1].textContent = c.count || 0;
-  if (cards[2]) cards[2].textContent = m.count || 0;
-  if (cards[3]) cards[3].textContent = r.count || 0;
-}
-
-// Loaders integrados en go()
-</script>
-
-<!-- ============================================================
-     MODALES DE FORMULARIOS
-============================================================ -->
-<style>
-.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;}
-.modal-overlay.open{display:flex;}
-.modal{background:white;border-radius:10px;padding:24px;width:560px;max-width:95vw;max-height:90vh;overflow-y:auto;}
-.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
-.modal-title{font-size:14px;font-weight:700;color:#1a2a4a;}
-.modal-close{background:none;border:none;font-size:18px;cursor:pointer;color:#6b7a99;}
-.modal-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
-.modal-row.full{grid-template-columns:1fr;}
-.modal-row.three{grid-template-columns:1fr 1fr 1fr;}
-.mf-label{display:block;font-size:11px;font-weight:600;color:#6b7a99;margin-bottom:4px;text-transform:uppercase;}
-.mf-input{width:100%;padding:8px 11px;border:1px solid #c8d0df;border-radius:6px;font-size:12px;font-family:'Segoe UI',Arial,sans-serif;outline:none;}
-.mf-input:focus{border-color:#2563a8;}
-.modal-actions{margin-top:16px;display:flex;gap:8px;justify-content:flex-end;}
-.btn-save{padding:8px 20px;background:#2563a8;color:white;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;}
-.btn-save:hover{background:#1a4a8a;}
-.btn-cancel{padding:8px 16px;background:#f0f3f8;color:#6b7a99;border:none;border-radius:6px;font-size:12px;cursor:pointer;}
-</style>
 
 <!-- MODAL VEHÍCULO -->
-<div class="modal-overlay" id="modal-vehiculo">
-  <div class="modal">
-    <div class="modal-head">
-      <div class="modal-title">🚛 Nuevo Vehículo</div>
-      <button class="modal-close" onclick="cerrarModal('modal-vehiculo')">✕</button>
-    </div>
-    <div class="modal-row three">
-      <div><label class="mf-label">Placa *</label><input class="mf-input" id="mv-placa" placeholder="ABC123" style="text-transform:uppercase"></div>
-      <div><label class="mf-label">Clase</label><select class="mf-input" id="mv-clase"><option value="">Sel.</option><option>Camión</option><option>Tractocamión</option><option>Furgón</option><option>Doble troque</option></select></div>
-      <div><label class="mf-label">Marca</label><input class="mf-input" id="mv-marca" placeholder="Kenworth"></div>
-    </div>
-    <div class="modal-row three">
-      <div><label class="mf-label">Línea</label><input class="mf-input" id="mv-linea" placeholder="T800"></div>
-      <div><label class="mf-label">Modelo (año)</label><input class="mf-input" id="mv-modelo" type="number" placeholder="2020"></div>
-      <div><label class="mf-label">Color</label><input class="mf-input" id="mv-color" placeholder="Blanco"></div>
-    </div>
-    <div class="modal-row">
-      <div><label class="mf-label">Capacidad (toneladas)</label><input class="mf-input" id="mv-cap" type="number" step="0.1" placeholder="15.5"></div>
-      <div><label class="mf-label">Carrocería</label><input class="mf-input" id="mv-carroceria" placeholder="Estacas"></div>
-    </div>
-    <div class="modal-row three">
-      <div><label class="mf-label">N° SOAT</label><input class="mf-input" id="mv-soat"></div>
-      <div><label class="mf-label">Venc. SOAT</label><input class="mf-input" id="mv-vsoat" type="date"></div>
-      <div><label class="mf-label">Venc. Tecnicomecánica</label><input class="mf-input" id="mv-vtecno" type="date"></div>
-    </div>
-    <div class="modal-row">
-      <div><label class="mf-label">Propietario</label><select class="mf-input" id="mv-propietario"><option value="">Seleccionar...</option></select></div>
-      <div><label class="mf-label">Estado</label><select class="mf-input" id="mv-estado"><option value="habilitado">Habilitado</option><option value="inhabilitado">Inhabilitado</option><option value="retirado">Retirado</option></select></div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="cerrarModal('modal-vehiculo')">Cancelar</button>
-      <button class="btn-save" onclick="guardarVehiculo()">💾 Guardar vehículo</button>
-    </div>
+<div class="modal-bg" id="modal-vehiculo">
+<div class="modal-box">
+  <div class="modal-head"><div class="modal-title">🚛 Nuevo Vehículo</div><button class="modal-x" onclick="cerrarModal('modal-vehiculo')">✕</button></div>
+  <div class="mrow mrow-3">
+    <div class="mfield"><label>Placa *</label><input id="mv-placa" placeholder="ABC123" style="text-transform:uppercase"></div>
+    <div class="mfield"><label>Clase</label><select id="mv-clase"><option value="">Sel.</option><option>Camión</option><option>Tractocamión</option><option>Furgón</option><option>Doble troque</option></select></div>
+    <div class="mfield"><label>Marca</label><input id="mv-marca" placeholder="Kenworth"></div>
   </div>
-</div>
+  <div class="mrow mrow-3">
+    <div class="mfield"><label>Línea</label><input id="mv-linea" placeholder="T800"></div>
+    <div class="mfield"><label>Modelo (año)</label><input id="mv-modelo" type="number" placeholder="2020"></div>
+    <div class="mfield"><label>Color</label><input id="mv-color" placeholder="Blanco"></div>
+  </div>
+  <div class="mrow mrow-3">
+    <div class="mfield"><label>Capacidad (ton)</label><input id="mv-cap" type="number" step="0.1"></div>
+    <div class="mfield"><label>Carrocería</label><input id="mv-carr" placeholder="Estacas"></div>
+    <div class="mfield"><label>Estado</label><select id="mv-est"><option value="habilitado">Habilitado</option><option value="inhabilitado">Inhabilitado</option><option value="retirado">Retirado</option></select></div>
+  </div>
+  <div class="mrow mrow-3">
+    <div class="mfield"><label>N° SOAT</label><input id="mv-nsoat"></div>
+    <div class="mfield"><label>Venc. SOAT</label><input id="mv-vsoat" type="date"></div>
+    <div class="mfield"><label>Venc. Tecnicomecánica</label><input id="mv-vtecno" type="date"></div>
+  </div>
+  <div class="mrow mrow-1">
+    <div class="mfield"><label>Propietario</label><select id="mv-prop"><option value="">Sin propietario</option></select></div>
+  </div>
+  <div class="mact"><button class="mbtn-cancel" onclick="cerrarModal('modal-vehiculo')">Cancelar</button><button class="mbtn-save" onclick="guardarVehiculo()">💾 Guardar vehículo</button></div>
+</div></div>
 
 <!-- MODAL CONDUCTOR -->
-<div class="modal-overlay" id="modal-conductor">
-  <div class="modal">
-    <div class="modal-head">
-      <div class="modal-title">👤 Nuevo Conductor</div>
-      <button class="modal-close" onclick="cerrarModal('modal-conductor')">✕</button>
-    </div>
-    <div class="modal-row">
-      <div><label class="mf-label">Nombre completo *</label><input class="mf-input" id="mc-nombre" placeholder="Juan Torres"></div>
-      <div><label class="mf-label">Cédula *</label><input class="mf-input" id="mc-cedula" placeholder="12345678"></div>
-    </div>
-    <div class="modal-row">
-      <div><label class="mf-label">Teléfono</label><input class="mf-input" id="mc-tel" placeholder="3001234567"></div>
-      <div><label class="mf-label">Email</label><input class="mf-input" id="mc-email" type="email"></div>
-    </div>
-    <div class="modal-row three">
-      <div><label class="mf-label">N° Licencia</label><input class="mf-input" id="mc-lic"></div>
-      <div><label class="mf-label">Categoría</label><select class="mf-input" id="mc-cat"><option value="">Sel.</option><option>C2</option><option>C3</option><option>C2B</option><option>C3B</option></select></div>
-      <div><label class="mf-label">Venc. Licencia</label><input class="mf-input" id="mc-vlic" type="date"></div>
-    </div>
-    <div class="modal-row">
-      <div><label class="mf-label">Placa asignada</label><select class="mf-input" id="mc-placa"><option value="">Sin asignar</option></select></div>
-      <div><label class="mf-label">Fecha ingreso</label><input class="mf-input" id="mc-ingreso" type="date"></div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="cerrarModal('modal-conductor')">Cancelar</button>
-      <button class="btn-save" onclick="guardarConductor()">💾 Guardar conductor</button>
-    </div>
+<div class="modal-bg" id="modal-conductor">
+<div class="modal-box">
+  <div class="modal-head"><div class="modal-title">👤 Nuevo Conductor</div><button class="modal-x" onclick="cerrarModal('modal-conductor')">✕</button></div>
+  <div class="mrow mrow-2">
+    <div class="mfield"><label>Nombre completo *</label><input id="mc-nombre" placeholder="Juan Torres"></div>
+    <div class="mfield"><label>Cédula *</label><input id="mc-cedula" placeholder="12345678"></div>
   </div>
-</div>
+  <div class="mrow mrow-2">
+    <div class="mfield"><label>Teléfono</label><input id="mc-tel" placeholder="3001234567"></div>
+    <div class="mfield"><label>Email</label><input id="mc-email" type="email"></div>
+  </div>
+  <div class="mrow mrow-3">
+    <div class="mfield"><label>N° Licencia</label><input id="mc-lic"></div>
+    <div class="mfield"><label>Categoría</label><select id="mc-cat"><option value="">Sel.</option><option>C2</option><option>C3</option><option>C2B</option><option>C3B</option></select></div>
+    <div class="mfield"><label>Venc. Licencia</label><input id="mc-vlic" type="date"></div>
+  </div>
+  <div class="mrow mrow-2">
+    <div class="mfield"><label>Placa asignada</label><select id="mc-placa"><option value="">Sin asignar</option></select></div>
+    <div class="mfield"><label>Fecha ingreso</label><input id="mc-ingreso" type="date"></div>
+  </div>
+  <div class="mact"><button class="mbtn-cancel" onclick="cerrarModal('modal-conductor')">Cancelar</button><button class="mbtn-save" onclick="guardarConductor()">💾 Guardar conductor</button></div>
+</div></div>
 
 <!-- MODAL PROPIETARIO -->
-<div class="modal-overlay" id="modal-propietario">
-  <div class="modal">
-    <div class="modal-head">
-      <div class="modal-title">👥 Nuevo Propietario</div>
-      <button class="modal-close" onclick="cerrarModal('modal-propietario')">✕</button>
-    </div>
-    <div class="modal-row">
-      <div><label class="mf-label">Nombre / Razón Social *</label><input class="mf-input" id="mp-nombre"></div>
-      <div><label class="mf-label">Tipo persona</label><select class="mf-input" id="mp-tipo"><option value="natural">Natural</option><option value="juridica">Jurídica</option></select></div>
-    </div>
-    <div class="modal-row">
-      <div><label class="mf-label">NIT / Cédula *</label><input class="mf-input" id="mp-nit"></div>
-      <div><label class="mf-label">Teléfono</label><input class="mf-input" id="mp-tel"></div>
-    </div>
-    <div class="modal-row">
-      <div><label class="mf-label">Ciudad</label><input class="mf-input" id="mp-ciudad"></div>
-      <div><label class="mf-label">Dirección</label><input class="mf-input" id="mp-dir"></div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="cerrarModal('modal-propietario')">Cancelar</button>
-      <button class="btn-save" onclick="guardarPropietario()">💾 Guardar propietario</button>
-    </div>
+<div class="modal-bg" id="modal-propietario">
+<div class="modal-box">
+  <div class="modal-head"><div class="modal-title">👥 Nuevo Propietario</div><button class="modal-x" onclick="cerrarModal('modal-propietario')">✕</button></div>
+  <div class="mrow mrow-2">
+    <div class="mfield"><label>Nombre / Razón Social *</label><input id="mp-nombre"></div>
+    <div class="mfield"><label>Tipo persona</label><select id="mp-tipo"><option value="natural">Natural</option><option value="juridica">Jurídica</option></select></div>
   </div>
-</div>
+  <div class="mrow mrow-2">
+    <div class="mfield"><label>NIT / Cédula *</label><input id="mp-nit"></div>
+    <div class="mfield"><label>Teléfono</label><input id="mp-tel"></div>
+  </div>
+  <div class="mrow mrow-2">
+    <div class="mfield"><label>Ciudad</label><input id="mp-ciudad"></div>
+    <div class="mfield"><label>Dirección</label><input id="mp-dir"></div>
+  </div>
+  <div class="mact"><button class="mbtn-cancel" onclick="cerrarModal('modal-propietario')">Cancelar</button><button class="mbtn-save" onclick="guardarPropietario()">💾 Guardar propietario</button></div>
+</div></div>
 
 <!-- MODAL CLIENTE -->
-<div class="modal-overlay" id="modal-cliente">
-  <div class="modal">
-    <div class="modal-head">
-      <div class="modal-title">🏢 Nuevo Cliente / Remitente</div>
-      <button class="modal-close" onclick="cerrarModal('modal-cliente')">✕</button>
-    </div>
-    <div class="modal-row">
-      <div><label class="mf-label">Nombre / Razón Social *</label><input class="mf-input" id="mcl-nombre"></div>
-      <div><label class="mf-label">NIT / Cédula *</label><input class="mf-input" id="mcl-nit"></div>
-    </div>
-    <div class="modal-row">
-      <div><label class="mf-label">Email</label><input class="mf-input" id="mcl-email" type="email"></div>
-      <div><label class="mf-label">Teléfono</label><input class="mf-input" id="mcl-tel"></div>
-    </div>
-    <div class="modal-row">
-      <div><label class="mf-label">Ciudad</label><input class="mf-input" id="mcl-ciudad"></div>
-      <div><label class="mf-label">Dirección</label><input class="mf-input" id="mcl-dir"></div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="cerrarModal('modal-cliente')">Cancelar</button>
-      <button class="btn-save" onclick="guardarCliente()">💾 Guardar cliente</button>
-    </div>
+<div class="modal-bg" id="modal-cliente">
+<div class="modal-box">
+  <div class="modal-head"><div class="modal-title">🏢 Nuevo Cliente / Remitente</div><button class="modal-x" onclick="cerrarModal('modal-cliente')">✕</button></div>
+  <div class="mrow mrow-2">
+    <div class="mfield"><label>Nombre / Razón Social *</label><input id="mcl-nombre"></div>
+    <div class="mfield"><label>NIT / Cédula *</label><input id="mcl-nit"></div>
   </div>
-</div>
+  <div class="mrow mrow-2">
+    <div class="mfield"><label>Email</label><input id="mcl-email" type="email"></div>
+    <div class="mfield"><label>Teléfono</label><input id="mcl-tel"></div>
+  </div>
+  <div class="mrow mrow-2">
+    <div class="mfield"><label>Ciudad</label><input id="mcl-ciudad"></div>
+    <div class="mfield"><label>Dirección</label><input id="mcl-dir"></div>
+  </div>
+  <div class="mact"><button class="mbtn-cancel" onclick="cerrarModal('modal-cliente')">Cancelar</button><button class="mbtn-save" onclick="guardarCliente()">💾 Guardar cliente</button></div>
+</div></div>
 
 <!-- MODAL MANIFIESTO -->
-<div class="modal-overlay" id="modal-manifiesto">
-  <div class="modal">
-    <div class="modal-head">
-      <div class="modal-title">📦 Nuevo Manifiesto</div>
-      <button class="modal-close" onclick="cerrarModal('modal-manifiesto')">✕</button>
-    </div>
-    <div class="modal-row three">
-      <div><label class="mf-label">N° Manifiesto *</label><input class="mf-input" id="mm-num" placeholder="Auto"></div>
-      <div><label class="mf-label">Agencia</label><input class="mf-input" id="mm-agencia"></div>
-      <div><label class="mf-label">Fecha *</label><input class="mf-input" id="mm-fecha" type="date"></div>
-    </div>
-    <div class="modal-row">
-      <div><label class="mf-label">Cliente</label><select class="mf-input" id="mm-cliente"><option value="">Seleccionar...</option></select></div>
-      <div><label class="mf-label">Vehículo</label><select class="mf-input" id="mm-vehiculo"><option value="">Seleccionar...</option></select></div>
-    </div>
-    <div class="modal-row">
-      <div><label class="mf-label">Conductor</label><select class="mf-input" id="mm-conductor"><option value="">Seleccionar...</option></select></div>
-      <div><label class="mf-label">Valor Flete ($)</label><input class="mf-input" id="mm-flete" type="number"></div>
-    </div>
-    <div class="modal-row">
-      <div><label class="mf-label">Origen *</label><input class="mf-input" id="mm-origen" placeholder="Bogotá D.C."></div>
-      <div><label class="mf-label">Destino *</label><input class="mf-input" id="mm-destino" placeholder="Medellín"></div>
-    </div>
-    <div class="modal-row full">
-      <div><label class="mf-label">Descripción de carga</label><input class="mf-input" id="mm-desc" placeholder="Productos alimenticios empacados"></div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="cerrarModal('modal-manifiesto')">Cancelar</button>
-      <button class="btn-save" onclick="guardarManifiesto()">💾 Guardar manifiesto</button>
-    </div>
+<div class="modal-bg" id="modal-manifiesto">
+<div class="modal-box">
+  <div class="modal-head"><div class="modal-title">📦 Nuevo Manifiesto</div><button class="modal-x" onclick="cerrarModal('modal-manifiesto')">✕</button></div>
+  <div class="mrow mrow-3">
+    <div class="mfield"><label>N° Manifiesto *</label><input id="mm-num"></div>
+    <div class="mfield"><label>Agencia</label><input id="mm-agencia"></div>
+    <div class="mfield"><label>Fecha *</label><input id="mm-fecha" type="date"></div>
   </div>
-</div>
+  <div class="mrow mrow-2">
+    <div class="mfield"><label>Cliente</label><select id="mm-cli"><option value="">Seleccionar...</option></select></div>
+    <div class="mfield"><label>Vehículo</label><select id="mm-veh"><option value="">Seleccionar...</option></select></div>
+  </div>
+  <div class="mrow mrow-2">
+    <div class="mfield"><label>Conductor</label><select id="mm-con"><option value="">Seleccionar...</option></select></div>
+    <div class="mfield"><label>Valor Flete ($)</label><input id="mm-flete" type="number"></div>
+  </div>
+  <div class="mrow mrow-2">
+    <div class="mfield"><label>Origen *</label><input id="mm-origen" placeholder="Bogotá D.C."></div>
+    <div class="mfield"><label>Destino *</label><input id="mm-destino" placeholder="Medellín"></div>
+  </div>
+  <div class="mrow mrow-1"><div class="mfield"><label>Descripción carga</label><input id="mm-desc"></div></div>
+  <div class="mact"><button class="mbtn-cancel" onclick="cerrarModal('modal-manifiesto')">Cancelar</button><button class="mbtn-save" onclick="guardarManifiesto()">💾 Guardar manifiesto</button></div>
+</div></div>
 
-<!-- TOAST -->
-<div id="sb-toast" style="display:none;position:fixed;bottom:20px;right:20px;padding:11px 18px;border-radius:8px;color:white;font-size:12px;font-weight:600;z-index:9999;"></div>
+<!-- MODAL REMESA -->
+<div class="modal-bg" id="modal-remesa">
+<div class="modal-box">
+  <div class="modal-head"><div class="modal-title">📋 Nueva Remesa</div><button class="modal-x" onclick="cerrarModal('modal-remesa')">✕</button></div>
+  <div class="mrow mrow-3">
+    <div class="mfield"><label>N° Remesa *</label><input id="mr-num"></div>
+    <div class="mfield"><label>Agencia</label><input id="mr-agencia"></div>
+    <div class="mfield"><label>Fecha</label><input id="mr-fecha" type="date"></div>
+  </div>
+  <div class="mrow mrow-2">
+    <div class="mfield"><label>Manifiesto</label><select id="mr-man"><option value="">Seleccionar...</option></select></div>
+    <div class="mfield"><label>Cliente</label><select id="mr-cli"><option value="">Seleccionar...</option></select></div>
+  </div>
+  <div class="mrow mrow-2">
+    <div class="mfield"><label>Vehículo</label><select id="mr-veh"><option value="">Seleccionar...</option></select></div>
+    <div class="mfield"><label>Flete ($)</label><input id="mr-flete" type="number"></div>
+  </div>
+  <div class="mrow mrow-2">
+    <div class="mfield"><label>Origen</label><input id="mr-origen"></div>
+    <div class="mfield"><label>Destino</label><input id="mr-destino"></div>
+  </div>
+  <div class="mrow mrow-3">
+    <div class="mfield"><label>Descripción mercancía</label><input id="mr-desc"></div>
+    <div class="mfield"><label>Peso (kg)</label><input id="mr-peso" type="number"></div>
+    <div class="mfield"><label>Valor declarado ($)</label><input id="mr-valor" type="number"></div>
+  </div>
+  <div class="mact"><button class="mbtn-cancel" onclick="cerrarModal('modal-remesa')">Cancelar</button><button class="mbtn-save" onclick="guardarRemesa()">💾 Guardar remesa</button></div>
+</div></div>
+
+<!-- MODAL ANTICIPO -->
+<div class="modal-bg" id="modal-anticipo">
+<div class="modal-box">
+  <div class="modal-head"><div class="modal-title">💰 Nuevo Anticipo</div><button class="modal-x" onclick="cerrarModal('modal-anticipo')">✕</button></div>
+  <div class="mrow mrow-2">
+    <div class="mfield"><label>N° Documento *</label><input id="ma-num"></div>
+    <div class="mfield"><label>Fecha</label><input id="ma-fecha" type="date"></div>
+  </div>
+  <div class="mrow mrow-2">
+    <div class="mfield"><label>Conductor</label><select id="ma-con"><option value="">Seleccionar...</option></select></div>
+    <div class="mfield"><label>Manifiesto</label><select id="ma-man"><option value="">Seleccionar...</option></select></div>
+  </div>
+  <div class="mrow mrow-2">
+    <div class="mfield"><label>Valor ($) *</label><input id="ma-valor" type="number"></div>
+    <div class="mfield"><label>Descuento ($)</label><input id="ma-desc" type="number"></div>
+  </div>
+  <div class="mact"><button class="mbtn-cancel" onclick="cerrarModal('modal-anticipo')">Cancelar</button><button class="mbtn-save" onclick="guardarAnticipo()">💾 Guardar anticipo</button></div>
+</div></div>
 
 <script>
 // ============================================================
-// SUPABASE CONFIG
+// MOC Company - Sistema de Transporte
+// Supabase: TransportesMOC
 // ============================================================
 const SB_URL = 'https://cfgcuzdkgidudbnfdlxn.supabase.co';
 const SB_KEY = 'sb_publishable_f5x8xoeSk2TOAq8n15lcZQ_bLIQcm7Z';
@@ -1182,29 +787,59 @@ const db = createClient(SB_URL, SB_KEY);
 // ============================================================
 // UTILS
 // ============================================================
-function toast(msg, ok=true) {
-  const t = document.getElementById('sb-toast');
+function showToast(msg, ok=true) {
+  let t = document.getElementById('moc-toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'moc-toast';
+    t.style.cssText = 'position:fixed;bottom:20px;right:20px;padding:11px 20px;border-radius:8px;color:white;font-size:13px;font-weight:600;z-index:9999;display:none;box-shadow:0 4px 12px rgba(0,0,0,0.2);';
+    document.body.appendChild(t);
+  }
   t.textContent = msg;
   t.style.background = ok ? '#22a06b' : '#e5534b';
   t.style.display = 'block';
-  setTimeout(() => t.style.display = 'none', 3000);
+  setTimeout(() => t.style.display = 'none', 3500);
 }
 
+// ============================================================
+// MODAL SYSTEM
+// ============================================================
 function abrirModal(id) {
-  document.getElementById(id).classList.add('open');
-  if (id === 'modal-vehiculo') cargarPropietariosSelect();
-  if (id === 'modal-conductor') cargarPlacasSelect();
-  if (id === 'modal-manifiesto') { cargarClientesSelect(); cargarVehiculosSelect(); cargarConductoresSelect(); generarConsecutivo('manifiesto', 'mm-num'); }
+  const m = document.getElementById(id);
+  if (m) {
+    m.style.display = 'flex';
+    // Cargar selects necesarios
+    if (id === 'modal-vehiculo') cargarSelectPropietarios();
+    if (id === 'modal-conductor') cargarSelectPlacas();
+    if (id === 'modal-manifiesto') {
+      cargarSelectClientes();
+      cargarSelectVehiculos();
+      cargarSelectConductores();
+      generarNumero('manifiesto', 'mm-num');
+    }
+    if (id === 'modal-remesa') {
+      cargarSelectManifiestos();
+      cargarSelectClientesRem();
+      cargarSelectVehiculosRem();
+      generarNumero('remesa', 'mr-num');
+    }
+    if (id === 'modal-anticipo') {
+      cargarSelectConductoresAnt();
+      cargarSelectManifiestosAnt();
+      generarNumero('anticipo', 'ma-num');
+    }
+  }
 }
 
 function cerrarModal(id) {
-  document.getElementById(id).classList.remove('open');
+  const m = document.getElementById(id);
+  if (m) m.style.display = 'none';
 }
 
-// Cerrar modal al hacer clic fuera
+// Cerrar al clic fuera
 document.addEventListener('click', e => {
-  if (e.target.classList.contains('modal-overlay')) {
-    e.target.classList.remove('open');
+  if (e.target.classList.contains('modal-bg')) {
+    e.target.style.display = 'none';
   }
 });
 
@@ -1213,13 +848,14 @@ document.addEventListener('click', e => {
 // ============================================================
 async function doLogin() {
   const email = document.getElementById('uInput').value.trim();
-  const password = document.getElementById('pInput').value;
-  if (!email || !password) { alert('Ingresa correo y contraseña'); return; }
-  const { data, error } = await db.auth.signInWithPassword({ email, password });
+  const pass = document.getElementById('pInput').value;
+  if (!email || !pass) { alert('Ingresa correo y contraseña'); return; }
+  
+  const { data, error } = await db.auth.signInWithPassword({ email, password: pass });
   if (error) {
-    const hint = document.querySelector('.login-hint');
-    hint.textContent = '❌ ' + (error.message === 'Invalid login credentials' ? 'Correo o contraseña incorrectos' : error.message);
-    hint.style.color = '#e5534b';
+    const h = document.querySelector('.login-hint');
+    h.textContent = '❌ Correo o contraseña incorrectos';
+    h.style.color = '#e5534b';
     return;
   }
   iniciarApp(data.user);
@@ -1238,179 +874,245 @@ function iniciarApp(user) {
   go('vencimientos', 'Alerta de vencimientos', 'Herramientas');
 }
 
-window.addEventListener('load', async () => {
-  document.getElementById('sysDate').textContent = new Date().toLocaleDateString('es-CO');
-  const { data } = await db.auth.getSession();
-  if (data?.session) iniciarApp(data.session.user);
-});
+// ============================================================
+// NAVEGACIÓN
+// ============================================================
+function toggleGroup(id) {
+  const el = document.getElementById(id);
+  const arr = document.getElementById('arr-' + id);
+  if (el.style.display === 'none') { el.style.display = 'block'; arr.classList.add('open'); }
+  else { el.style.display = 'none'; arr.classList.remove('open'); }
+}
+
+function go(pageId, pageName, section) {
+  document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const pg = document.getElementById('page-' + pageId);
+  if (pg) pg.classList.add('active');
+  document.getElementById('bc-page').textContent = pageName || pageId;
+  document.getElementById('bc-section').textContent = section || 'Operaciones';
+  document.getElementById('topModule').textContent = 'Módulo: ' + (section || 'Operaciones');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.getAttribute('onclick') && n.getAttribute('onclick').includes("'" + pageId + "'")) n.classList.add('active');
+  });
+  // Cargar datos
+  const loaders = {
+    vencimientos: ldVencimientos, vehiculos: ldVehiculos,
+    conductores: ldConductores, propietarios: ldPropietarios,
+    manifiestos: ldManifiestos, remesas: ldRemesas, anticipos: ldAnticipos
+  };
+  if (loaders[pageId]) loaders[pageId]();
+}
 
 // ============================================================
-// CONSECUTIVOS AUTOMÁTICOS
+// CONSECUTIVOS
 // ============================================================
-async function generarConsecutivo(tipo, inputId) {
-  const { data } = await db.rpc('generar_consecutivo', { p_tipo: tipo });
-  if (data && document.getElementById(inputId)) {
-    document.getElementById(inputId).value = data;
+async function generarNumero(tipo, inputId) {
+  const { data, error } = await db.rpc('generar_consecutivo', { p_tipo: tipo });
+  if (!error && data) {
+    const el = document.getElementById(inputId);
+    if (el) el.value = data;
   }
 }
 
 // ============================================================
-// CARGAR SELECTS
+// SELECTS
 // ============================================================
-async function cargarPropietariosSelect() {
-  const { data } = await db.from('propietarios').select('id, nombre').eq('estado', 'habilitado').order('nombre');
-  const sel = document.getElementById('mv-propietario');
-  if (sel) sel.innerHTML = '<option value="">Sin propietario</option>' + (data||[]).map(p => `<option value="${p.id}">${p.nombre}</option>`).join('');
+async function cargarSelectPropietarios() {
+  const { data } = await db.from('propietarios').select('id,nombre').eq('estado','habilitado').order('nombre');
+  const s = document.getElementById('mv-prop');
+  if (s) s.innerHTML = '<option value="">Sin propietario</option>' + (data||[]).map(p=>`<option value="${p.id}">${p.nombre}</option>`).join('');
 }
-
-async function cargarPlacasSelect() {
-  const { data } = await db.from('vehiculos').select('placa').eq('estado', 'habilitado').order('placa');
-  const sel = document.getElementById('mc-placa');
-  if (sel) sel.innerHTML = '<option value="">Sin asignar</option>' + (data||[]).map(v => `<option value="${v.placa}">${v.placa}</option>`).join('');
+async function cargarSelectPlacas() {
+  const { data } = await db.from('vehiculos').select('placa').eq('estado','habilitado').order('placa');
+  const s = document.getElementById('mc-placa');
+  if (s) s.innerHTML = '<option value="">Sin asignar</option>' + (data||[]).map(v=>`<option value="${v.placa}">${v.placa}</option>`).join('');
 }
-
-async function cargarClientesSelect() {
-  const { data } = await db.from('clientes').select('id, nombre').order('nombre');
-  const sel = document.getElementById('mm-cliente');
-  if (sel) sel.innerHTML = '<option value="">Seleccionar...</option>' + (data||[]).map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+async function cargarSelectClientes() {
+  const { data } = await db.from('clientes').select('id,nombre').order('nombre');
+  const s = document.getElementById('mm-cli');
+  if (s) s.innerHTML = '<option value="">Seleccionar...</option>' + (data||[]).map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('');
 }
-
-async function cargarVehiculosSelect() {
-  const { data } = await db.from('vehiculos').select('id, placa').eq('estado', 'habilitado').order('placa');
-  const sel = document.getElementById('mm-vehiculo');
-  if (sel) sel.innerHTML = '<option value="">Seleccionar...</option>' + (data||[]).map(v => `<option value="${v.id}">${v.placa}</option>`).join('');
+async function cargarSelectVehiculos() {
+  const { data } = await db.from('vehiculos').select('id,placa').eq('estado','habilitado').order('placa');
+  const s = document.getElementById('mm-veh');
+  if (s) s.innerHTML = '<option value="">Seleccionar...</option>' + (data||[]).map(v=>`<option value="${v.id}">${v.placa}</option>`).join('');
 }
-
-async function cargarConductoresSelect() {
-  const { data } = await db.from('conductores').select('id, nombre').eq('estado', 'activo').order('nombre');
-  const sel = document.getElementById('mm-conductor');
-  if (sel) sel.innerHTML = '<option value="">Seleccionar...</option>' + (data||[]).map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+async function cargarSelectConductores() {
+  const { data } = await db.from('conductores').select('id,nombre').eq('estado','activo').order('nombre');
+  const s = document.getElementById('mm-con');
+  if (s) s.innerHTML = '<option value="">Seleccionar...</option>' + (data||[]).map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('');
+}
+async function cargarSelectManifiestos() {
+  const { data } = await db.from('manifiestos').select('id,numero_manifiesto').order('numero_manifiesto');
+  const s = document.getElementById('mr-man');
+  if (s) s.innerHTML = '<option value="">Seleccionar...</option>' + (data||[]).map(m=>`<option value="${m.id}">${m.numero_manifiesto}</option>`).join('');
+}
+async function cargarSelectClientesRem() {
+  const { data } = await db.from('clientes').select('id,nombre').order('nombre');
+  const s = document.getElementById('mr-cli');
+  if (s) s.innerHTML = '<option value="">Seleccionar...</option>' + (data||[]).map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('');
+}
+async function cargarSelectVehiculosRem() {
+  const { data } = await db.from('vehiculos').select('id,placa').eq('estado','habilitado').order('placa');
+  const s = document.getElementById('mr-veh');
+  if (s) s.innerHTML = '<option value="">Seleccionar...</option>' + (data||[]).map(v=>`<option value="${v.id}">${v.placa}</option>`).join('');
+}
+async function cargarSelectConductoresAnt() {
+  const { data } = await db.from('conductores').select('id,nombre').eq('estado','activo').order('nombre');
+  const s = document.getElementById('ma-con');
+  if (s) s.innerHTML = '<option value="">Seleccionar...</option>' + (data||[]).map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('');
+}
+async function cargarSelectManifiestosAnt() {
+  const { data } = await db.from('manifiestos').select('id,numero_manifiesto').order('numero_manifiesto');
+  const s = document.getElementById('ma-man');
+  if (s) s.innerHTML = '<option value="">Seleccionar...</option>' + (data||[]).map(m=>`<option value="${m.id}">${m.numero_manifiesto}</option>`).join('');
 }
 
 // ============================================================
-// GUARDAR VEHÍCULO
+// GUARDAR REGISTROS
 // ============================================================
 async function guardarVehiculo() {
   const placa = document.getElementById('mv-placa').value.toUpperCase().trim();
-  if (!placa) { toast('La placa es obligatoria', false); return; }
+  if (!placa) { showToast('La placa es obligatoria', false); return; }
   const { error } = await db.from('vehiculos').insert({
-    placa,
-    clase: document.getElementById('mv-clase').value,
+    placa, clase: document.getElementById('mv-clase').value,
     marca: document.getElementById('mv-marca').value,
     linea: document.getElementById('mv-linea').value,
-    modelo: parseInt(document.getElementById('mv-modelo').value) || null,
+    modelo: parseInt(document.getElementById('mv-modelo').value)||null,
     color: document.getElementById('mv-color').value,
-    capacidad_toneladas: parseFloat(document.getElementById('mv-cap').value) || null,
-    carroceria: document.getElementById('mv-carroceria').value,
-    soat_vencimiento: document.getElementById('mv-vsoat').value || null,
-    tecnomecanica_vencimiento: document.getElementById('mv-vtecno').value || null,
-    propietario_id: document.getElementById('mv-propietario').value || null,
-    estado: document.getElementById('mv-estado').value
+    capacidad_toneladas: parseFloat(document.getElementById('mv-cap').value)||null,
+    carroceria: document.getElementById('mv-carr').value,
+    soat_vencimiento: document.getElementById('mv-vsoat').value||null,
+    tecnomecanica_vencimiento: document.getElementById('mv-vtecno').value||null,
+    propietario_id: document.getElementById('mv-prop').value||null,
+    estado: document.getElementById('mv-est').value
   });
-  if (error) { toast('Error: ' + error.message, false); return; }
-  toast('✅ Vehículo ' + placa + ' registrado');
+  if (error) { showToast('Error: ' + error.message, false); return; }
+  showToast('✅ Vehículo ' + placa + ' registrado');
   cerrarModal('modal-vehiculo');
-  loadVehiculos();
+  ldVehiculos();
 }
 
-// ============================================================
-// GUARDAR CONDUCTOR
-// ============================================================
 async function guardarConductor() {
   const nombre = document.getElementById('mc-nombre').value.trim();
   const cedula = document.getElementById('mc-cedula').value.trim();
-  if (!nombre || !cedula) { toast('Nombre y cédula son obligatorios', false); return; }
+  if (!nombre || !cedula) { showToast('Nombre y cédula son obligatorios', false); return; }
   const { error } = await db.from('conductores').insert({
-    nombre, cedula,
-    telefono: document.getElementById('mc-tel').value,
+    nombre, cedula, telefono: document.getElementById('mc-tel').value,
     email: document.getElementById('mc-email').value,
     licencia_numero: document.getElementById('mc-lic').value,
     licencia_categoria: document.getElementById('mc-cat').value,
-    licencia_vencimiento: document.getElementById('mc-vlic').value || null,
-    placa_asignada: document.getElementById('mc-placa').value || null,
-    fecha_ingreso: document.getElementById('mc-ingreso').value || null,
+    licencia_vencimiento: document.getElementById('mc-vlic').value||null,
+    placa_asignada: document.getElementById('mc-placa').value||null,
+    fecha_ingreso: document.getElementById('mc-ingreso').value||null,
     estado: 'activo'
   });
-  if (error) { toast('Error: ' + error.message, false); return; }
-  toast('✅ Conductor ' + nombre + ' registrado');
+  if (error) { showToast('Error: ' + error.message, false); return; }
+  showToast('✅ Conductor ' + nombre + ' registrado');
   cerrarModal('modal-conductor');
-  loadConductores();
+  ldConductores();
 }
 
-// ============================================================
-// GUARDAR PROPIETARIO
-// ============================================================
 async function guardarPropietario() {
   const nombre = document.getElementById('mp-nombre').value.trim();
   const nit_cedula = document.getElementById('mp-nit').value.trim();
-  if (!nombre || !nit_cedula) { toast('Nombre y NIT/cédula son obligatorios', false); return; }
+  if (!nombre || !nit_cedula) { showToast('Nombre y NIT/cédula son obligatorios', false); return; }
   const { error } = await db.from('propietarios').insert({
-    nombre, nit_cedula,
-    tipo_persona: document.getElementById('mp-tipo').value,
+    nombre, nit_cedula, tipo_persona: document.getElementById('mp-tipo').value,
     telefono: document.getElementById('mp-tel').value,
     ciudad: document.getElementById('mp-ciudad').value,
     direccion: document.getElementById('mp-dir').value,
     estado: 'habilitado'
   });
-  if (error) { toast('Error: ' + error.message, false); return; }
-  toast('✅ Propietario ' + nombre + ' registrado');
+  if (error) { showToast('Error: ' + error.message, false); return; }
+  showToast('✅ Propietario ' + nombre + ' registrado');
   cerrarModal('modal-propietario');
-  loadPropietarios();
+  ldPropietarios();
 }
 
-// ============================================================
-// GUARDAR CLIENTE
-// ============================================================
 async function guardarCliente() {
   const nombre = document.getElementById('mcl-nombre').value.trim();
   const nit_cedula = document.getElementById('mcl-nit').value.trim();
-  if (!nombre || !nit_cedula) { toast('Nombre y NIT/cédula son obligatorios', false); return; }
+  if (!nombre || !nit_cedula) { showToast('Nombre y NIT/cédula son obligatorios', false); return; }
   const { error } = await db.from('clientes').insert({
-    nombre, nit_cedula,
-    email: document.getElementById('mcl-email').value,
+    nombre, nit_cedula, email: document.getElementById('mcl-email').value,
     telefono: document.getElementById('mcl-tel').value,
     ciudad: document.getElementById('mcl-ciudad').value,
     direccion: document.getElementById('mcl-dir').value,
     estado: 'activo'
   });
-  if (error) { toast('Error: ' + error.message, false); return; }
-  toast('✅ Cliente ' + nombre + ' registrado');
+  if (error) { showToast('Error: ' + error.message, false); return; }
+  showToast('✅ Cliente ' + nombre + ' registrado');
   cerrarModal('modal-cliente');
 }
 
-// ============================================================
-// GUARDAR MANIFIESTO
-// ============================================================
 async function guardarManifiesto() {
-  const numero = document.getElementById('mm-num').value.trim();
+  const num = document.getElementById('mm-num').value.trim();
   const origen = document.getElementById('mm-origen').value.trim();
   const destino = document.getElementById('mm-destino').value.trim();
   const fecha = document.getElementById('mm-fecha').value;
-  if (!numero || !origen || !destino || !fecha) { toast('Número, fecha, origen y destino son obligatorios', false); return; }
+  if (!num || !origen || !destino || !fecha) { showToast('Número, fecha, origen y destino son obligatorios', false); return; }
   const { error } = await db.from('manifiestos').insert({
-    numero_manifiesto: numero,
-    agencia: document.getElementById('mm-agencia').value,
-    fecha,
-    cliente_id: document.getElementById('mm-cliente').value || null,
-    vehiculo_id: document.getElementById('mm-vehiculo').value || null,
-    conductor_id: document.getElementById('mm-conductor').value || null,
-    valor_flete: parseFloat(document.getElementById('mm-flete').value) || null,
-    origen, destino,
-    descripcion_carga: document.getElementById('mm-desc').value,
-    estado: 'en_transito',
-    rndc_estado: 'pendiente'
+    numero_manifiesto: num, agencia: document.getElementById('mm-agencia').value,
+    fecha, cliente_id: document.getElementById('mm-cli').value||null,
+    vehiculo_id: document.getElementById('mm-veh').value||null,
+    conductor_id: document.getElementById('mm-con').value||null,
+    valor_flete: parseFloat(document.getElementById('mm-flete').value)||null,
+    origen, destino, descripcion_carga: document.getElementById('mm-desc').value,
+    estado: 'en_transito', rndc_estado: 'pendiente'
   });
-  if (error) { toast('Error: ' + error.message, false); return; }
-  toast('✅ Manifiesto ' + numero + ' creado');
+  if (error) { showToast('Error: ' + error.message, false); return; }
+  showToast('✅ Manifiesto ' + num + ' creado');
   cerrarModal('modal-manifiesto');
-  loadManifiestos();
+  ldManifiestos();
+}
+
+async function guardarRemesa() {
+  const num = document.getElementById('mr-num').value.trim();
+  if (!num) { showToast('El número es obligatorio', false); return; }
+  const { error } = await db.from('remesas').insert({
+    numero_remesa: num, agencia: document.getElementById('mr-agencia').value,
+    fecha: document.getElementById('mr-fecha').value,
+    manifiesto_id: document.getElementById('mr-man').value||null,
+    cliente_id: document.getElementById('mr-cli').value||null,
+    vehiculo_id: document.getElementById('mr-veh').value||null,
+    origen: document.getElementById('mr-origen').value,
+    destino: document.getElementById('mr-destino').value,
+    descripcion_mercancia: document.getElementById('mr-desc').value,
+    peso: parseFloat(document.getElementById('mr-peso').value)||null,
+    valor_declarado: parseFloat(document.getElementById('mr-valor').value)||null,
+    flete: parseFloat(document.getElementById('mr-flete').value)||null,
+    estado: 'planillada'
+  });
+  if (error) { showToast('Error: ' + error.message, false); return; }
+  showToast('✅ Remesa ' + num + ' creada');
+  cerrarModal('modal-remesa');
+  ldRemesas();
+}
+
+async function guardarAnticipo() {
+  const num = document.getElementById('ma-num').value.trim();
+  const valor = parseFloat(document.getElementById('ma-valor').value);
+  if (!num || !valor) { showToast('Número y valor son obligatorios', false); return; }
+  const { error } = await db.from('anticipos').insert({
+    numero_documento: num, fecha: document.getElementById('ma-fecha').value,
+    conductor_id: document.getElementById('ma-con').value||null,
+    manifiesto_id: document.getElementById('ma-man').value||null,
+    valor, descuento: parseFloat(document.getElementById('ma-desc').value)||0,
+    estado: 'guardado'
+  });
+  if (error) { showToast('Error: ' + error.message, false); return; }
+  showToast('✅ Anticipo ' + num + ' registrado');
+  cerrarModal('modal-anticipo');
+  ldAnticipos();
 }
 
 // ============================================================
 // CARGAR TABLAS
 // ============================================================
-async function loadVehiculos() {
-  const { data } = await db.from('vehiculos').select('*, propietarios!propietario_id(nombre), conductores(nombre)').order('placa');
+async function ldVehiculos() {
+  const { data } = await db.from('vehiculos').select('*, propietarios!propietario_id(nombre)').order('placa');
   const pg = document.getElementById('page-vehiculos');
   if (!pg || !data) return;
   const cvs = pg.querySelectorAll('.counter-val');
@@ -1420,14 +1122,14 @@ async function loadVehiculos() {
   if (cvs[3]) cvs[3].textContent = data.filter(v=>v.estado==='retirado').length;
   const tb = pg.querySelector('tbody');
   if (!tb) return;
-  if (!data.length) { tb.innerHTML = '<tr><td colspan="10" class="tbl-empty"><div class="tbl-empty-icon">🚛</div><div>Sin registros encontrados</div></td></tr>'; return; }
+  if (!data.length) { tb.innerHTML = '<tr><td colspan="10" class="tbl-empty"><div class="tbl-empty-icon">🚛</div><div>Sin registros. Crea el primero haciendo clic en "+ Nuevo vehículo"</div></td></tr>'; return; }
   tb.innerHTML = data.map(v => {
     const cls = v.estado==='habilitado'?'b-green':v.estado==='inhabilitado'?'b-red':'b-gray';
-    return `<tr><td><strong>${v.placa}</strong></td><td>${v.clase||'-'}</td><td>${v.marca||'-'}</td><td>${v.linea||'-'}</td><td>${v.color||'-'}</td><td>${v.propietarios?.nombre||'-'}</td><td>-</td><td>${v.conductores?.nombre||'-'}</td><td><span class="badge ${cls}">${v.estado}</span></td><td><button class="act-btn" title="Editar">✏️</button></td></tr>`;
+    return `<tr><td><strong>${v.placa}</strong></td><td>${v.clase||'-'}</td><td>${v.marca||'-'}</td><td>${v.linea||'-'}</td><td>${v.color||'-'}</td><td>${v.propietarios?.nombre||'-'}</td><td>-</td><td>-</td><td><span class="badge ${cls}">${v.estado}</span></td><td><button class="act-btn">✏️</button></td></tr>`;
   }).join('');
 }
 
-async function loadConductores() {
+async function ldConductores() {
   const { data } = await db.from('conductores').select('*').order('nombre');
   const pg = document.getElementById('page-conductores');
   if (!pg || !data) return;
@@ -1437,14 +1139,14 @@ async function loadConductores() {
   if (cvs[2]) cvs[2].textContent = data.filter(c=>c.estado!=='activo').length;
   const tb = pg.querySelector('tbody');
   if (!tb) return;
-  if (!data.length) { tb.innerHTML = '<tr><td colspan="9" class="tbl-empty"><div class="tbl-empty-icon">👤</div><div>Sin conductores registrados</div></td></tr>'; return; }
+  if (!data.length) { tb.innerHTML = '<tr><td colspan="9" class="tbl-empty"><div class="tbl-empty-icon">👤</div><div>Sin conductores. Crea el primero haciendo clic en "+ Nuevo conductor"</div></td></tr>'; return; }
   tb.innerHTML = data.map(c => {
     const cls = c.estado==='activo'?'b-green':'b-red';
     return `<tr><td>${c.cedula}</td><td><strong>${c.nombre}</strong></td><td>${c.telefono||'-'}</td><td>${c.licencia_numero||'-'}</td><td>${c.licencia_categoria||'-'}</td><td>${c.licencia_vencimiento||'-'}</td><td>${c.placa_asignada||'-'}</td><td><span class="badge ${cls}">${c.estado}</span></td><td><button class="act-btn">✏️</button></td></tr>`;
   }).join('');
 }
 
-async function loadPropietarios() {
+async function ldPropietarios() {
   const { data } = await db.from('propietarios').select('*').order('nombre');
   const pg = document.getElementById('page-propietarios');
   if (!pg || !data) return;
@@ -1454,14 +1156,14 @@ async function loadPropietarios() {
   if (cvs[2]) cvs[2].textContent = data.filter(p=>p.estado!=='habilitado').length;
   const tb = pg.querySelector('tbody');
   if (!tb) return;
-  if (!data.length) { tb.innerHTML = '<tr><td colspan="7" class="tbl-empty"><div class="tbl-empty-icon">👥</div><div>Sin propietarios registrados</div></td></tr>'; return; }
+  if (!data.length) { tb.innerHTML = '<tr><td colspan="7" class="tbl-empty"><div class="tbl-empty-icon">👥</div><div>Sin propietarios. Crea el primero haciendo clic en "+ Nuevo propietario"</div></td></tr>'; return; }
   tb.innerHTML = data.map(p => {
     const cls = p.estado==='habilitado'?'b-green':'b-red';
     return `<tr><td>${p.nit_cedula}</td><td><strong>${p.nombre}</strong></td><td>${p.tipo_persona}</td><td>${p.telefono||'-'}</td><td>${p.ciudad||'-'}</td><td><span class="badge ${cls}">${p.estado}</span></td><td><button class="act-btn">✏️</button></td></tr>`;
   }).join('');
 }
 
-async function loadManifiestos() {
+async function ldManifiestos() {
   const { data } = await db.from('manifiestos').select('*, clientes(nombre), vehiculos(placa), conductores(nombre)').order('created_at', {ascending:false});
   const pg = document.getElementById('page-manifiestos');
   if (!pg || !data) return;
@@ -1472,7 +1174,7 @@ async function loadManifiestos() {
   if (cvs[3]) cvs[3].textContent = data.filter(m=>m.rndc_estado==='enviado').length;
   const tb = pg.querySelector('tbody');
   if (!tb) return;
-  if (!data.length) { tb.innerHTML = '<tr><td colspan="11" class="tbl-empty"><div class="tbl-empty-icon">📦</div><div>Sin manifiestos registrados</div></td></tr>'; return; }
+  if (!data.length) { tb.innerHTML = '<tr><td colspan="11" class="tbl-empty"><div class="tbl-empty-icon">📦</div><div>Sin manifiestos</div></td></tr>'; return; }
   tb.innerHTML = data.map(m => {
     const cls = m.estado==='entregado'?'b-green':m.estado==='en_transito'?'b-blue':'b-gray';
     const rndc = m.rndc_estado==='enviado'?'<span class="badge b-green">✓ RNDC</span>':'<span class="badge b-amber">Pendiente</span>';
@@ -1480,7 +1182,7 @@ async function loadManifiestos() {
   }).join('');
 }
 
-async function loadRemesas() {
+async function ldRemesas() {
   const { data } = await db.from('remesas').select('*, clientes(nombre), vehiculos(placa), manifiestos(numero_manifiesto)').order('created_at', {ascending:false});
   const pg = document.getElementById('page-remesas');
   if (!pg || !data) return;
@@ -1490,14 +1192,14 @@ async function loadRemesas() {
   if (cvs[2]) cvs[2].textContent = data.filter(r=>r.estado==='entregada').length;
   const tb = pg.querySelector('tbody');
   if (!tb) return;
-  if (!data.length) { tb.innerHTML = '<tr><td colspan="10" class="tbl-empty"><div class="tbl-empty-icon">📋</div><div>Sin remesas registradas</div></td></tr>'; return; }
+  if (!data.length) { tb.innerHTML = '<tr><td colspan="10" class="tbl-empty"><div class="tbl-empty-icon">📋</div><div>Sin remesas</div></td></tr>'; return; }
   tb.innerHTML = data.map(r => {
     const cls = r.estado==='entregada'?'b-green':r.estado==='planillada'?'b-blue':'b-gray';
     return `<tr><td><strong>${r.numero_remesa}</strong></td><td>${r.manifiestos?.numero_manifiesto||'-'}</td><td>${r.agencia||'-'}</td><td>${r.fecha}</td><td>${r.clientes?.nombre||'-'}</td><td>${r.vehiculos?.placa||'-'}</td><td>${r.origen||'-'}</td><td>${r.destino||'-'}</td><td>${r.flete?'$'+parseInt(r.flete).toLocaleString():'-'}</td><td><span class="badge ${cls}">${r.estado}</span></td></tr>`;
   }).join('');
 }
 
-async function loadAnticipos() {
+async function ldAnticipos() {
   const { data } = await db.from('anticipos').select('*, conductores(nombre), manifiestos(numero_manifiesto)').order('created_at', {ascending:false});
   const pg = document.getElementById('page-anticipos');
   if (!pg || !data) return;
@@ -1508,14 +1210,14 @@ async function loadAnticipos() {
   if (cvs[3]) cvs[3].textContent = data.filter(a=>a.estado==='anulado').length;
   const tb = pg.querySelector('tbody');
   if (!tb) return;
-  if (!data.length) { tb.innerHTML = '<tr><td colspan="8" class="tbl-empty"><div class="tbl-empty-icon">💰</div><div>Sin anticipos registrados</div></td></tr>'; return; }
+  if (!data.length) { tb.innerHTML = '<tr><td colspan="8" class="tbl-empty"><div class="tbl-empty-icon">💰</div><div>Sin anticipos</div></td></tr>'; return; }
   tb.innerHTML = data.map(a => {
     const cls = a.estado==='contabilizado'?'b-green':a.estado==='anulado'?'b-red':'b-blue';
     return `<tr><td><strong>${a.numero_documento}</strong></td><td>${a.fecha}</td><td>${a.conductores?.nombre||'-'}</td><td>${a.conductores?.nombre||'-'}</td><td>${a.descuento?'$'+parseInt(a.descuento).toLocaleString():'$0'}</td><td>$${parseInt(a.valor).toLocaleString()}</td><td><span class="badge ${cls}">${a.estado}</span></td><td><button class="act-btn">✏️</button></td></tr>`;
   }).join('');
 }
 
-async function loadVencimientos() {
+async function ldVencimientos() {
   const hoy = new Date().toISOString().split('T')[0];
   const en30 = new Date(Date.now()+30*24*60*60*1000).toISOString().split('T')[0];
   const { data } = await db.from('vehiculos').select('*').order('soat_vencimiento');
@@ -1529,22 +1231,26 @@ async function loadVencimientos() {
   }
   const tb = pg.querySelector('tbody');
   if (!tb) return;
-  if (!data.length) { tb.innerHTML = '<tr><td colspan="8" class="tbl-empty"><div>No hay vehículos registrados</div></td></tr>'; return; }
+  if (!data.length) { tb.innerHTML = '<tr><td colspan="8" class="tbl-empty"><div>No hay vehículos registrados aún</div></td></tr>'; return; }
   tb.innerHTML = data.map(v => {
     const est = !v.soat_vencimiento?'pendiente':v.soat_vencimiento<hoy?'vencido':v.soat_vencimiento<=en30?'próximo':'vigente';
     const cls = est==='vencido'?'b-red':est==='próximo'?'b-amber':'b-green';
-    return `<tr><td>${v.placa}</td><td>-</td><td>-</td><td>-</td><td>${v.soat_vencimiento||'-'}</td><td>-</td><td>${v.tecnomecanica_vencimiento||'-'}</td><td><span class="badge ${cls}">${est}</span></td></tr>`;
+    return `<tr><td><strong>${v.placa}</strong></td><td>-</td><td>-</td><td>-</td><td>${v.soat_vencimiento||'-'}</td><td>-</td><td>${v.tecnomecanica_vencimiento||'-'}</td><td><span class="badge ${cls}">${est}</span></td></tr>`;
   }).join('');
 }
 
-// Integrar go() con loaders
-const _goBase = go;
-window._goBase = _goBase;
-go = function(pageId, pageName, section) {
-  _goBase(pageId, pageName, section);
-  const loaders = { vencimientos:loadVencimientos, vehiculos:loadVehiculos, conductores:loadConductores, propietarios:loadPropietarios, manifiestos:loadManifiestos, remesas:loadRemesas, anticipos:loadAnticipos };
-  if (loaders[pageId]) loaders[pageId]();
-};
+// ============================================================
+// INIT
+// ============================================================
+window.addEventListener('load', async () => {
+  document.getElementById('sysDate').textContent = new Date().toLocaleDateString('es-CO');
+  const { data } = await db.auth.getSession();
+  if (data?.session) iniciarApp(data.session.user);
+});
+
+document.getElementById('uInput').addEventListener('keydown', e => { if (e.key==='Enter') doLogin(); });
+document.getElementById('pInput').addEventListener('keydown', e => { if (e.key==='Enter') doLogin(); });
+
 </script>
 </body>
 </html>
