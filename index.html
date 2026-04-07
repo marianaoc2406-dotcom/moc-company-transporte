@@ -1111,7 +1111,7 @@ tr:hover td{background:#f5f7fb;}
 const SB_URL = 'https://cfgcuzdkgidudbnfdlxn.supabase.co';
 // IMPORTANTE: Reemplaza con tu anon key real del dashboard de Supabase
 // Project Settings → API → anon/public (empieza con eyJ...)
-const SB_KEY = 'sb_publishable_f5x8xoeSk2TOAq8n15lcZQ_bLIQcm7Z';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNmZ2N1emRrZ2lkdWRibmZkbHhuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNjI5MTQsImV4cCI6MjA5MDgzODkxNH0.IsNth5Vhi2hx7fqelLiRNSYpryxfPqVXKuC4EJ0byDo';
 const { createClient } = supabase;
 let db;
 try {
@@ -1510,7 +1510,7 @@ async function ldPropietarios() {
 }
 
 async function ldManifiestos() {
-  const { data } = await db.from('manifiestos').select('*, clientes!cliente_id(nombre), vehiculos!vehiculo_id(placa), conductores!conductor_id(nombre)').order('created_at', {ascending:false});
+  const { data } = await db.from('manifiestos').select('*, clientes(nombre), vehiculos(placa), conductores(nombre)').order('created_at', {ascending:false});
   const pg = document.getElementById('page-manifiestos');
   if (!pg || !data) return;
   const cvs = pg.querySelectorAll('.counter-val');
@@ -1529,7 +1529,7 @@ async function ldManifiestos() {
 }
 
 async function ldRemesas() {
-  const { data } = await db.from('remesas').select('*, clientes!cliente_id(nombre), vehiculos!vehiculo_id(placa), manifiestos!manifiesto_id(numero_manifiesto)').order('created_at', {ascending:false});
+  const { data } = await db.from('remesas').select('*, clientes(nombre), vehiculos(placa), manifiestos(numero_manifiesto)').order('created_at', {ascending:false});
   const pg = document.getElementById('page-remesas');
   if (!pg || !data) return;
   const cvs = pg.querySelectorAll('.counter-val');
@@ -1546,7 +1546,7 @@ async function ldRemesas() {
 }
 
 async function ldAnticipos() {
-  const { data } = await db.from('anticipos').select('*, conductores!conductor_id(nombre), manifiestos!manifiesto_id(numero_manifiesto)').order('created_at', {ascending:false});
+  const { data } = await db.from('anticipos').select('*, conductores(nombre), manifiestos(numero_manifiesto)').order('created_at', {ascending:false});
   const pg = document.getElementById('page-anticipos');
   if (!pg || !data) return;
   const cvs = pg.querySelectorAll('.counter-val');
@@ -1611,7 +1611,7 @@ async function ldRNDCManifiestos() {
   const desde = document.getElementById('rndc-desde')?.value;
   const hasta = document.getElementById('rndc-hasta')?.value;
   const estadoFiltro = document.getElementById('rndc-estado-filtro')?.value;
-  let query = db.from('manifiestos').select('*, clientes!cliente_id(nombre), vehiculos!vehiculo_id(placa), conductores!conductor_id(nombre)').order('created_at', {ascending:false});
+  let query = db.from('manifiestos').select('*, clientes(nombre), vehiculos(placa), conductores(nombre)').order('created_at', {ascending:false});
   if (desde) query = query.gte('fecha', desde);
   if (hasta) query = query.lte('fecha', hasta);
   if (estadoFiltro) query = query.eq('rndc_estado', estadoFiltro);
@@ -1697,7 +1697,7 @@ async function enviarRNDCUno(id, numero) {
 
   // Cargar datos completos del manifiesto
   const { data: m } = await db.from('manifiestos')
-    .select('*, clientes!cliente_id(nombre,nit_cedula), vehiculos!vehiculo_id(placa), conductores!conductor_id(nombre,cedula)')
+    .select('*, clientes(nombre,nit_cedula), vehiculos(placa), conductores(nombre,cedula)')
     .eq('id', id).single();
   if (!m) { showToast('❌ No se encontró el manifiesto', false); return; }
 
@@ -1747,7 +1747,7 @@ async function enviarRNDCSeleccionados() {
   for (const cb of checks) {
     const id = cb.dataset.id;
     const { data: m } = await db.from('manifiestos')
-      .select('*, clientes!cliente_id(nombre,nit_cedula), vehiculos!vehiculo_id(placa), conductores!conductor_id(nombre,cedula)')
+      .select('*, clientes(nombre,nit_cedula), vehiculos(placa), conductores(nombre,cedula)')
       .eq('id', id).single();
     if (!m) { errores++; continue; }
 
@@ -1787,7 +1787,7 @@ async function enviarRNDCSeleccionados() {
 async function enviarRNDCTodos() {
   if (!confirm('¿Enviar TODOS los manifiestos pendientes al RNDC del Ministerio?')) return;
   const { data } = await db.from('manifiestos')
-    .select('*, clientes!cliente_id(nombre,nit_cedula), vehiculos!vehiculo_id(placa), conductores!conductor_id(nombre,cedula)')
+    .select('*, clientes(nombre,nit_cedula), vehiculos(placa), conductores(nombre,cedula)')
     .or('rndc_estado.is.null,rndc_estado.eq.pendiente,rndc_estado.eq.error');
   if (!data?.length) { showToast('No hay manifiestos pendientes de envío', false); return; }
 
@@ -1922,7 +1922,7 @@ async function generarUIAF() {
   const ms = meses[trim];
   const desde = anio + '-' + String(ms[0]).padStart(2,'0') + '-01';
   const hasta = anio + '-' + String(ms[2]).padStart(2,'0') + '-31';
-  const { data } = await db.from('manifiestos').select('*, clientes!cliente_id(nombre,nit_cedula), vehiculos!vehiculo_id(placa), conductores!conductor_id(nombre,cedula)').gte('fecha',desde).lte('fecha',hasta);
+  const { data } = await db.from('manifiestos').select('*, clientes(nombre,nit_cedula), vehiculos(placa), conductores(nombre,cedula)').gte('fecha',desde).lte('fecha',hasta);
   const res = document.getElementById('uiaf-result');
   if (!data) { res.innerHTML = '<span style="color:#e5534b">Error al cargar datos</span>'; return; }
   const total = data.reduce((s,m)=>s+(parseFloat(m.valor_flete)||0), 0);
