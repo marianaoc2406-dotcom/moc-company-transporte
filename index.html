@@ -426,7 +426,7 @@ tr:hover td{background:#f5f7fb;}
         </div>
         <div class="tbl-wrap">
           <table>
-            <thead><tr><th>Conductor</th><th>Cédula</th><th>Teléfono</th><th>Licencia</th><th>Categoría</th><th>Placa asignada</th><th>Fecha ingreso</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <thead><tr><th>Cédula</th><th>Nombre / Ciudad</th><th>Celular</th><th>N° Licencia</th><th>Categoría</th><th>Venc. Licencia</th><th>Placa asignada</th><th>EPS</th><th>Estado</th><th>Acciones</th></tr></thead>
             <tbody><tr><td colspan="9" class="tbl-empty"><div class="tbl-empty-icon">👤</div><div>Sin registros encontrados</div></td></tr></tbody>
           </table>
         </div>
@@ -969,27 +969,220 @@ tr:hover td{background:#f5f7fb;}
 </div></div>
 
 <!-- MODAL CONDUCTOR -->
+<style>
+.ctabs{display:flex;gap:0;border-bottom:2px solid #e0e7ef;margin-bottom:16px;}
+.ctab{padding:8px 14px;font-size:11px;font-weight:600;color:#6b7a99;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;}
+.ctab.active{color:#2563a8;border-bottom-color:#2563a8;}
+.ctab:hover{color:#2563a8;}
+.ctab-panel{display:none;}
+.ctab-panel.active{display:block;}
+.modal-box-wide{width:720px;}
+.sec-title{font-size:10px;font-weight:700;color:#2563a8;text-transform:uppercase;letter-spacing:0.06em;margin:14px 0 8px;padding-bottom:4px;border-bottom:1px solid #e8eef6;}
+</style>
+
 <div class="modal-bg" id="modal-conductor">
-<div class="modal-box">
-  <div class="modal-head"><div class="modal-title">👤 Nuevo Conductor</div><button class="modal-x" onclick="cerrarModal('modal-conductor')">✕</button></div>
-  <div class="mrow mrow-2">
-    <div class="mfield"><label>Nombre completo *</label><input id="mc-nombre" placeholder="Juan Torres"></div>
-    <div class="mfield"><label>Cédula *</label><input id="mc-cedula" placeholder="12345678"></div>
+<div class="modal-box modal-box-wide">
+  <!-- HEADER con estado y cédula al estilo Granada -->
+  <div class="modal-head">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div class="modal-title">👤 <span id="mc-titulo">Nuevo Conductor</span></div>
+      <span id="mc-estado-badge" style="font-size:10px;padding:2px 10px;border-radius:99px;background:#d3f4e7;color:#1a7a50;font-weight:700;">ACTIVO</span>
+    </div>
+    <button class="modal-x" onclick="cerrarModal('modal-conductor')">✕</button>
   </div>
-  <div class="mrow mrow-2">
-    <div class="mfield"><label>Teléfono</label><input id="mc-tel" placeholder="3001234567"></div>
-    <div class="mfield"><label>Email</label><input id="mc-email" type="email"></div>
+
+  <!-- PESTAÑAS -->
+  <div class="ctabs">
+    <div class="ctab active" onclick="switchTab('mc','datos')">Datos Grales.</div>
+    <div class="ctab" onclick="switchTab('mc','inf')">Inf. Adicional</div>
+    <div class="ctab" onclick="switchTab('mc','seg')">Seg. Social</div>
+    <div class="ctab" onclick="switchTab('mc','banco')">Datos Bancarios</div>
+    <div class="ctab" onclick="switchTab('mc','docs')">Documentos</div>
   </div>
-  <div class="mrow mrow-3">
-    <div class="mfield"><label>N° Licencia</label><input id="mc-lic"></div>
-    <div class="mfield"><label>Categoría</label><select id="mc-cat"><option value="">Sel.</option><option>C2</option><option>C3</option><option>C2B</option><option>C3B</option></select></div>
-    <div class="mfield"><label>Venc. Licencia</label><input id="mc-vlic" type="date"></div>
+
+  <!-- PESTAÑA 1: DATOS GENERALES -->
+  <div class="ctab-panel active" id="mc-panel-datos">
+    <div class="mrow mrow-3">
+      <div class="mfield"><label>Nombres *</label><input id="mc-nombres" placeholder="ANTONY"></div>
+      <div class="mfield"><label>Primer Apellido *</label><input id="mc-apellido1" placeholder="MENDEZ"></div>
+      <div class="mfield"><label>Segundo Apellido</label><input id="mc-apellido2" placeholder="RAMIREZ"></div>
+    </div>
+    <div class="mrow mrow-3">
+      <div class="mfield"><label>Tipo ID</label><select id="mc-tipo-id"><option value="CC">Cédula de Ciudadanía</option><option value="CE">Cédula Extranjería</option><option value="PA">Pasaporte</option></select></div>
+      <div class="mfield"><label>N° Documento *</label><input id="mc-cedula" placeholder="94294449"></div>
+      <div class="mfield"><label>Expedida en</label><input id="mc-expedida" placeholder="CALI"></div>
+    </div>
+    <div class="mrow mrow-3">
+      <div class="mfield"><label>Celular</label><input id="mc-cel" placeholder="3173788388"></div>
+      <div class="mfield"><label>Teléfono</label><input id="mc-tel" placeholder="6024000000"></div>
+      <div class="mfield"><label>Email</label><input id="mc-email" type="email"></div>
+    </div>
+    <div class="mrow mrow-3">
+      <div class="mfield"><label>Dirección</label><input id="mc-dir" placeholder="CRA 15B 22"></div>
+      <div class="mfield"><label>Barrio</label><input id="mc-barrio"></div>
+      <div class="mfield"><label>Ciudad</label><input id="mc-ciudad" placeholder="YUMBO"></div>
+    </div>
+    <div class="mrow mrow-3">
+      <div class="mfield"><label>Fecha nacimiento</label><input id="mc-fnac" type="date"></div>
+      <div class="mfield"><label>Lugar nacimiento</label><input id="mc-lnac" placeholder="CANDELARIA"></div>
+      <div class="mfield"><label>Tipo sangre</label><select id="mc-sangre"><option value="">-</option><option>O+</option><option>O-</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option></select></div>
+    </div>
+    <div class="mrow mrow-3">
+      <div class="mfield"><label>Estado civil</label><select id="mc-ecivil"><option value="">-</option><option>Soltero</option><option>Casado</option><option>Unión libre</option><option>Divorciado</option><option>Viudo</option></select></div>
+      <div class="mfield"><label>Fecha ingreso</label><input id="mc-ingreso" type="date"></div>
+      <div class="mfield"><label>Estado</label><select id="mc-estado"><option value="activo">Activo</option><option value="inactivo">Inactivo</option><option value="retirado">Retirado</option><option value="en_estudio">En estudio</option></select></div>
+    </div>
+    <div class="sec-title">Licencia de conducción</div>
+    <div class="mrow mrow-3">
+      <div class="mfield"><label>N° Licencia</label><input id="mc-lic" placeholder="94294449"></div>
+      <div class="mfield"><label>Categoría</label><select id="mc-cat"><option value="">Sel.</option><option>A1</option><option>A2</option><option>B1</option><option>B2</option><option>B3</option><option>C1</option><option>C2</option><option>C3</option><option>C2B</option><option>C3B</option></select></div>
+      <div class="mfield"><label>Vencimiento</label><input id="mc-vlic" type="date"></div>
+    </div>
+    <div class="mrow mrow-2">
+      <div class="mfield"><label>Placa asignada</label><select id="mc-placa"><option value="">Sin asignar</option></select></div>
+      <div class="mfield"><label>Tipo conductor</label><select id="mc-tipo-cond"><option value="">-</option><option>Empleador</option><option>Asalariado</option><option>Otro</option></select></div>
+    </div>
+    <div class="mfield" style="margin-top:8px;"><label>Observaciones</label><input id="mc-obs" placeholder=""></div>
   </div>
-  <div class="mrow mrow-2">
-    <div class="mfield"><label>Placa asignada</label><select id="mc-placa"><option value="">Sin asignar</option></select></div>
-    <div class="mfield"><label>Fecha ingreso</label><input id="mc-ingreso" type="date"></div>
+
+  <!-- PESTAÑA 2: INF. ADICIONAL -->
+  <div class="ctab-panel" id="mc-panel-inf">
+    <div class="sec-title">Verificaciones</div>
+    <div class="mrow mrow-3">
+      <div class="mfield"><label>Fecha verificación</label><input id="mc-fverif" type="date"></div>
+      <div class="mfield"><label>Próx. verificación</label><input id="mc-fverif2" type="date"></div>
+      <div class="mfield"><label>Total comparendos</label><input id="mc-comparendos" type="number" value="0"></div>
+    </div>
+    <div class="mrow mrow-2">
+      <div class="mfield"><label>Verif. antecedentes</label><input id="mc-antecedentes" type="date"></div>
+      <div class="mfield"><label>Próx. verif. antecedentes</label><input id="mc-antecedentes2" type="date"></div>
+    </div>
+    <div class="sec-title">Condiciones laborales</div>
+    <div class="mrow mrow-3">
+      <div class="mfield"><label>Salario ($)</label><input id="mc-salario" type="number" placeholder="0"></div>
+      <div class="mfield"><label>Subsidio transporte</label><select id="mc-sub-transp"><option value="no">No</option><option value="si">Sí</option></select></div>
+      <div class="mfield"><label>Comisiones</label><select id="mc-comisiones"><option value="no">No</option><option value="si">Sí</option></select></div>
+    </div>
+    <div class="mrow mrow-2">
+      <div class="mfield"><label>Póliza accidente personal</label><select id="mc-poliza"><option value="no">No</option><option value="si">Sí</option></select></div>
+      <div class="mfield"><label>Seg. social por fuera</label><select id="mc-segsoc-fuera"><option value="no">No</option><option value="si">Sí</option></select></div>
+    </div>
+    <div class="sec-title">Pasado judicial</div>
+    <div class="mrow mrow-2">
+      <div class="mfield"><label>Fecha pasado judicial</label><input id="mc-pjudicial" type="date"></div>
+      <div class="mfield"><label>Próx. renovación</label><input id="mc-pjudicial2" type="date"></div>
+    </div>
+    <div class="sec-title">Retiro (si aplica)</div>
+    <div class="mrow mrow-2">
+      <div class="mfield"><label>Fecha retiro</label><input id="mc-fretiro" type="date"></div>
+      <div class="mfield"><label>Motivo retiro</label><input id="mc-motivo-retiro"></div>
+    </div>
   </div>
-  <div class="mact"><button class="mbtn-cancel" onclick="cerrarModal('modal-conductor')">Cancelar</button><button class="mbtn-save" onclick="guardarConductor()">💾 Guardar conductor</button></div>
+
+  <!-- PESTAÑA 3: SEGURIDAD SOCIAL -->
+  <div class="ctab-panel" id="mc-panel-seg">
+    <div class="sec-title">Afiliaciones</div>
+    <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <thead><tr style="background:#f0f3f8;">
+          <th style="padding:7px 10px;text-align:left;border-bottom:1px solid #dde3ec;font-size:10px;color:#6b7a99;">Tipo</th>
+          <th style="padding:7px 10px;text-align:left;border-bottom:1px solid #dde3ec;font-size:10px;color:#6b7a99;">Entidad</th>
+          <th style="padding:7px 10px;text-align:left;border-bottom:1px solid #dde3ec;font-size:10px;color:#6b7a99;">Fecha afiliación</th>
+          <th style="padding:7px 10px;text-align:left;border-bottom:1px solid #dde3ec;font-size:10px;color:#6b7a99;">Fecha últ. pago</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td style="padding:6px 10px;font-weight:600;color:#2563a8;font-size:11px;">ARL</td>
+            <td style="padding:4px 6px;"><input id="mc-arl" style="width:100%;padding:5px 8px;border:1px solid #c8d0df;border-radius:4px;font-size:11px;" placeholder="SURA, POSITIVA..."></td>
+            <td style="padding:4px 6px;"><input id="mc-arl-fafl" type="date" style="width:100%;padding:5px 8px;border:1px solid #c8d0df;border-radius:4px;font-size:11px;"></td>
+            <td style="padding:4px 6px;"><input id="mc-arl-fpago" type="date" style="width:100%;padding:5px 8px;border:1px solid #c8d0df;border-radius:4px;font-size:11px;"></td>
+          </tr>
+          <tr style="background:#f8f9fc;">
+            <td style="padding:6px 10px;font-weight:600;color:#2563a8;font-size:11px;">EPS</td>
+            <td style="padding:4px 6px;"><input id="mc-eps" style="width:100%;padding:5px 8px;border:1px solid #c8d0df;border-radius:4px;font-size:11px;" placeholder="SURA, SANITAS..."></td>
+            <td style="padding:4px 6px;"><input id="mc-eps-fafl" type="date" style="width:100%;padding:5px 8px;border:1px solid #c8d0df;border-radius:4px;font-size:11px;"></td>
+            <td style="padding:4px 6px;"><input id="mc-eps-fpago" type="date" style="width:100%;padding:5px 8px;border:1px solid #c8d0df;border-radius:4px;font-size:11px;"></td>
+          </tr>
+          <tr>
+            <td style="padding:6px 10px;font-weight:600;color:#2563a8;font-size:11px;">Pensión</td>
+            <td style="padding:4px 6px;"><input id="mc-pension" style="width:100%;padding:5px 8px;border:1px solid #c8d0df;border-radius:4px;font-size:11px;" placeholder="COLPENSIONES..."></td>
+            <td style="padding:4px 6px;"><input id="mc-pension-fafl" type="date" style="width:100%;padding:5px 8px;border:1px solid #c8d0df;border-radius:4px;font-size:11px;"></td>
+            <td style="padding:4px 6px;"><input id="mc-pension-fpago" type="date" style="width:100%;padding:5px 8px;border:1px solid #c8d0df;border-radius:4px;font-size:11px;"></td>
+          </tr>
+          <tr style="background:#f8f9fc;">
+            <td style="padding:6px 10px;font-weight:600;color:#2563a8;font-size:11px;">C.C. Familiar</td>
+            <td style="padding:4px 6px;"><input id="mc-ccfam" style="width:100%;padding:5px 8px;border:1px solid #c8d0df;border-radius:4px;font-size:11px;" placeholder="Caja de compensación"></td>
+            <td style="padding:4px 6px;"><input id="mc-ccfam-fafl" type="date" style="width:100%;padding:5px 8px;border:1px solid #c8d0df;border-radius:4px;font-size:11px;"></td>
+            <td style="padding:4px 6px;"><input id="mc-ccfam-fpago" type="date" style="width:100%;padding:5px 8px;border:1px solid #c8d0df;border-radius:4px;font-size:11px;"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="sec-title">Último pago seguridad social</div>
+    <div class="mrow mrow-2">
+      <div class="mfield"><label>N° Planilla</label><input id="mc-planilla" placeholder="Número de planilla PILA"></div>
+      <div class="mfield"><label>Fecha pago</label><input id="mc-planilla-fecha" type="date"></div>
+    </div>
+    <div class="mrow mrow-1">
+      <div class="mfield"><label>Nivel de riesgo ARL</label><select id="mc-nivel-riesgo"><option value="">-</option><option value="1">I - Mínimo</option><option value="2">II - Bajo</option><option value="3">III - Medio</option><option value="4">IV - Alto</option><option value="5">V - Máximo</option></select></div>
+    </div>
+  </div>
+
+  <!-- PESTAÑA 4: DATOS BANCARIOS -->
+  <div class="ctab-panel" id="mc-panel-banco">
+    <div class="sec-title">Datos para transferencia de anticipos</div>
+    <div class="mrow mrow-2">
+      <div class="mfield"><label>Banco</label><select id="mc-banco"><option value="">Seleccionar...</option><option>BANCOLOMBIA</option><option>BANCO BOGOTÁ</option><option>DAVIVIENDA</option><option>BBVA</option><option>BANCO POPULAR</option><option>BANCO AGRARIO</option><option>NEQUI</option><option>DAVIPLATA</option><option>AV VILLAS</option><option>OCCIDENTE</option><option>SCOTIABANK COLPATRIA</option><option>ITAÚ</option><option>CAJA SOCIAL</option><option>COOPCENTRAL</option><option>OTRO</option></select></div>
+      <div class="mfield"><label>Tipo cuenta</label><select id="mc-tipo-cuenta"><option value="">Seleccionar...</option><option value="ahorros">Ahorros</option><option value="corriente">Corriente</option><option value="nequi">Nequi/Daviplata</option></select></div>
+    </div>
+    <div class="mrow mrow-2">
+      <div class="mfield"><label>N° Cuenta</label><input id="mc-cuenta" placeholder="62114412428"></div>
+      <div class="mfield"><label>Cédula titular</label><input id="mc-ced-titular" placeholder="94294449"></div>
+    </div>
+    <div class="mfield" style="margin-bottom:12px;"><label>Nombre titular</label><input id="mc-nombre-titular" placeholder="MENDEZ MORA ANTONY"></div>
+    <div style="background:#f0f6ff;border:1px solid #b0d4f5;border-radius:8px;padding:12px 14px;font-size:11px;color:#1a4a8a;">
+      ℹ️ Estos datos se usarán para el pago de anticipos por transferencia bancaria.
+    </div>
+  </div>
+
+  <!-- PESTAÑA 5: DOCUMENTOS -->
+  <div class="ctab-panel" id="mc-panel-docs">
+    <div class="sec-title">Documentos del conductor</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div style="border:1px dashed #c8d0df;border-radius:8px;padding:14px;text-align:center;">
+        <div style="font-size:11px;font-weight:700;color:#6b7a99;margin-bottom:8px;">CÉDULA DE CIUDADANÍA</div>
+        <div id="mc-doc-cc-preview" style="font-size:11px;color:#aab0c0;">Sin documento</div>
+        <input type="file" id="mc-doc-cc" accept="image/*,.pdf" style="display:none;" onchange="previewDoc('mc-doc-cc','mc-doc-cc-preview')">
+        <button onclick="document.getElementById('mc-doc-cc').click()" style="margin-top:8px;padding:5px 12px;font-size:11px;background:#f0f3f8;border:1px solid #c8d0df;border-radius:4px;cursor:pointer;">📎 Adjuntar</button>
+      </div>
+      <div style="border:1px dashed #c8d0df;border-radius:8px;padding:14px;text-align:center;">
+        <div style="font-size:11px;font-weight:700;color:#6b7a99;margin-bottom:8px;">LICENCIA DE CONDUCCIÓN</div>
+        <div id="mc-doc-lic-preview" style="font-size:11px;color:#aab0c0;">Sin documento</div>
+        <input type="file" id="mc-doc-lic" accept="image/*,.pdf" style="display:none;" onchange="previewDoc('mc-doc-lic','mc-doc-lic-preview')">
+        <button onclick="document.getElementById('mc-doc-lic').click()" style="margin-top:8px;padding:5px 12px;font-size:11px;background:#f0f3f8;border:1px solid #c8d0df;border-radius:4px;cursor:pointer;">📎 Adjuntar</button>
+      </div>
+      <div style="border:1px dashed #c8d0df;border-radius:8px;padding:14px;text-align:center;">
+        <div style="font-size:11px;font-weight:700;color:#6b7a99;margin-bottom:8px;">PASADO JUDICIAL</div>
+        <div id="mc-doc-pj-preview" style="font-size:11px;color:#aab0c0;">Sin documento</div>
+        <input type="file" id="mc-doc-pj" accept="image/*,.pdf" style="display:none;" onchange="previewDoc('mc-doc-pj','mc-doc-pj-preview')">
+        <button onclick="document.getElementById('mc-doc-pj').click()" style="margin-top:8px;padding:5px 12px;font-size:11px;background:#f0f3f8;border:1px solid #c8d0df;border-radius:4px;cursor:pointer;">📎 Adjuntar</button>
+      </div>
+      <div style="border:1px dashed #c8d0df;border-radius:8px;padding:14px;text-align:center;">
+        <div style="font-size:11px;font-weight:700;color:#6b7a99;margin-bottom:8px;">HOJA DE VIDA</div>
+        <div id="mc-doc-hv-preview" style="font-size:11px;color:#aab0c0;">Sin documento</div>
+        <input type="file" id="mc-doc-hv" accept="image/*,.pdf" style="display:none;" onchange="previewDoc('mc-doc-hv','mc-doc-hv-preview')">
+        <button onclick="document.getElementById('mc-doc-hv').click()" style="margin-top:8px;padding:5px 12px;font-size:11px;background:#f0f3f8;border:1px solid #c8d0df;border-radius:4px;cursor:pointer;">📎 Adjuntar</button>
+      </div>
+    </div>
+    <div style="margin-top:12px;background:#fef3d0;border:1px solid #f0d060;border-radius:8px;padding:10px 14px;font-size:11px;color:#7a5000;">
+      ⚠️ Los documentos se guardan localmente por ahora. Próximamente integración con almacenamiento en la nube.
+    </div>
+  </div>
+
+  <div class="mact">
+    <button class="mbtn-cancel" onclick="cerrarModal('modal-conductor')">Cancelar</button>
+    <button class="mbtn-save" onclick="guardarConductor()">💾 Guardar conductor</button>
+  </div>
 </div></div>
 
 <!-- MODAL PROPIETARIO -->
@@ -1341,23 +1534,172 @@ async function guardarVehiculo() {
 }
 
 async function guardarConductor() {
-  const nombre = document.getElementById('mc-nombre').value.trim();
-  const cedula = document.getElementById('mc-cedula').value.trim();
-  if (!nombre || !cedula) { showToast('Nombre y cédula son obligatorios', false); return; }
-  const { error } = await db.from('conductores').insert({
-    nombre, cedula, telefono: document.getElementById('mc-tel').value,
-    email: document.getElementById('mc-email').value,
-    licencia_numero: document.getElementById('mc-lic').value,
+  const nombres   = document.getElementById('mc-nombres').value.trim();
+  const apellido1 = document.getElementById('mc-apellido1').value.trim();
+  const apellido2 = document.getElementById('mc-apellido2').value.trim();
+  const cedula    = document.getElementById('mc-cedula').value.trim();
+  if (!nombres || !apellido1 || !cedula) {
+    showToast('Nombres, primer apellido y cédula son obligatorios', false); return;
+  }
+  const nombre = (nombres + ' ' + apellido1 + ' ' + apellido2).trim();
+
+  const registro = {
+    nombre,
+    nombres,
+    apellido1,
+    apellido2,
+    cedula,
+    tipo_id:            document.getElementById('mc-tipo-id').value,
+    expedida_en:        document.getElementById('mc-expedida').value,
+    celular:            document.getElementById('mc-cel').value,
+    telefono:           document.getElementById('mc-tel').value,
+    email:              document.getElementById('mc-email').value,
+    direccion:          document.getElementById('mc-dir').value,
+    barrio:             document.getElementById('mc-barrio').value,
+    ciudad:             document.getElementById('mc-ciudad').value,
+    fecha_nacimiento:   document.getElementById('mc-fnac').value||null,
+    lugar_nacimiento:   document.getElementById('mc-lnac').value,
+    tipo_sangre:        document.getElementById('mc-sangre').value,
+    estado_civil:       document.getElementById('mc-ecivil').value,
+    fecha_ingreso:      document.getElementById('mc-ingreso').value||null,
+    estado:             document.getElementById('mc-estado').value,
+    licencia_numero:    document.getElementById('mc-lic').value,
     licencia_categoria: document.getElementById('mc-cat').value,
     licencia_vencimiento: document.getElementById('mc-vlic').value||null,
-    placa_asignada: document.getElementById('mc-placa').value||null,
-    fecha_ingreso: document.getElementById('mc-ingreso').value||null,
-    estado: 'activo'
-  });
+    placa_asignada:     document.getElementById('mc-placa').value||null,
+    tipo_conductor:     document.getElementById('mc-tipo-cond').value,
+    observaciones:      document.getElementById('mc-obs').value,
+    // Inf. adicional
+    fecha_verificacion:      document.getElementById('mc-fverif').value||null,
+    prox_verificacion:       document.getElementById('mc-fverif2').value||null,
+    total_comparendos:       parseInt(document.getElementById('mc-comparendos').value)||0,
+    fecha_antecedentes:      document.getElementById('mc-antecedentes').value||null,
+    prox_antecedentes:       document.getElementById('mc-antecedentes2').value||null,
+    salario:                 parseFloat(document.getElementById('mc-salario').value)||null,
+    subsidio_transporte:     document.getElementById('mc-sub-transp').value === 'si',
+    comisiones:              document.getElementById('mc-comisiones').value === 'si',
+    poliza_accidente:        document.getElementById('mc-poliza').value === 'si',
+    seg_social_fuera:        document.getElementById('mc-segsoc-fuera').value === 'si',
+    fecha_pasado_judicial:   document.getElementById('mc-pjudicial').value||null,
+    prox_pasado_judicial:    document.getElementById('mc-pjudicial2').value||null,
+    fecha_retiro:            document.getElementById('mc-fretiro').value||null,
+    motivo_retiro:           document.getElementById('mc-motivo-retiro').value,
+    // Seg. social
+    arl:                     document.getElementById('mc-arl').value,
+    arl_fecha_afiliacion:    document.getElementById('mc-arl-fafl').value||null,
+    arl_fecha_pago:          document.getElementById('mc-arl-fpago').value||null,
+    eps:                     document.getElementById('mc-eps').value,
+    eps_fecha_afiliacion:    document.getElementById('mc-eps-fafl').value||null,
+    eps_fecha_pago:          document.getElementById('mc-eps-fpago').value||null,
+    pension:                 document.getElementById('mc-pension').value,
+    pension_fecha_afiliacion:document.getElementById('mc-pension-fafl').value||null,
+    pension_fecha_pago:      document.getElementById('mc-pension-fpago').value||null,
+    caja_compensacion:       document.getElementById('mc-ccfam').value,
+    planilla_numero:         document.getElementById('mc-planilla').value,
+    planilla_fecha:          document.getElementById('mc-planilla-fecha').value||null,
+    nivel_riesgo_arl:        document.getElementById('mc-nivel-riesgo').value,
+    // Bancarios
+    banco:                   document.getElementById('mc-banco').value,
+    tipo_cuenta:             document.getElementById('mc-tipo-cuenta').value,
+    numero_cuenta:           document.getElementById('mc-cuenta').value,
+    cedula_titular:          document.getElementById('mc-ced-titular').value,
+    nombre_titular:          document.getElementById('mc-nombre-titular').value,
+  };
+
+  const { error } = await db.from('conductores').insert(registro);
   if (error) { showToast('Error: ' + error.message, false); return; }
-  showToast('✅ Conductor ' + nombre + ' registrado');
+  showToast('✅ Conductor ' + nombre + ' registrado correctamente');
   cerrarModal('modal-conductor');
+  resetModalConductor();
   ldConductores();
+}
+
+async function verConductor(id) {
+  showToast('Cargando conductor...', true);
+  const { data: c } = await db.from('conductores').select('*').eq('id', id).single();
+  if (!c) { showToast('Error al cargar conductor', false); return; }
+  // Llenar datos generales
+  const set = (elId, val) => { const el = document.getElementById(elId); if(el) el.value = val||''; };
+  set('mc-nombres', c.nombres || c.nombre?.split(' ')[0] || '');
+  set('mc-apellido1', c.apellido1 || '');
+  set('mc-apellido2', c.apellido2 || '');
+  set('mc-cedula', c.cedula);
+  set('mc-expedida', c.expedida_en);
+  set('mc-cel', c.celular);
+  set('mc-tel', c.telefono);
+  set('mc-email', c.email);
+  set('mc-dir', c.direccion);
+  set('mc-barrio', c.barrio);
+  set('mc-ciudad', c.ciudad);
+  set('mc-fnac', c.fecha_nacimiento);
+  set('mc-lnac', c.lugar_nacimiento);
+  set('mc-sangre', c.tipo_sangre);
+  set('mc-ecivil', c.estado_civil);
+  set('mc-ingreso', c.fecha_ingreso);
+  set('mc-estado', c.estado);
+  set('mc-lic', c.licencia_numero);
+  set('mc-cat', c.licencia_categoria);
+  set('mc-vlic', c.licencia_vencimiento);
+  set('mc-placa', c.placa_asignada);
+  set('mc-obs', c.observaciones);
+  // Inf adicional
+  set('mc-fverif', c.fecha_verificacion);
+  set('mc-fverif2', c.prox_verificacion);
+  set('mc-comparendos', c.total_comparendos);
+  set('mc-salario', c.salario);
+  set('mc-motivo-retiro', c.motivo_retiro);
+  set('mc-fretiro', c.fecha_retiro);
+  // Seg social
+  set('mc-arl', c.arl); set('mc-arl-fafl', c.arl_fecha_afiliacion); set('mc-arl-fpago', c.arl_fecha_pago);
+  set('mc-eps', c.eps); set('mc-eps-fafl', c.eps_fecha_afiliacion); set('mc-eps-fpago', c.eps_fecha_pago);
+  set('mc-pension', c.pension); set('mc-pension-fafl', c.pension_fecha_afiliacion);
+  set('mc-ccfam', c.caja_compensacion);
+  set('mc-planilla', c.planilla_numero); set('mc-planilla-fecha', c.planilla_fecha);
+  set('mc-nivel-riesgo', c.nivel_riesgo_arl);
+  // Bancarios
+  set('mc-banco', c.banco); set('mc-tipo-cuenta', c.tipo_cuenta);
+  set('mc-cuenta', c.numero_cuenta); set('mc-ced-titular', c.cedula_titular);
+  set('mc-nombre-titular', c.nombre_titular);
+  // Actualizar título y badge
+  document.getElementById('mc-titulo').textContent = c.nombre;
+  const badge = document.getElementById('mc-estado-badge');
+  badge.textContent = (c.estado||'activo').toUpperCase();
+  badge.style.background = c.estado==='activo'?'#d3f4e7':c.estado==='retirado'?'#ffe0de':'#fef3d0';
+  badge.style.color = c.estado==='activo'?'#1a7a50':c.estado==='retirado'?'#8a1a1a':'#8a5a00';
+  // Guardar ID para update
+  document.getElementById('modal-conductor').dataset.editId = id;
+  abrirModal('modal-conductor');
+}
+
+function resetModalConductor() {
+  ['mc-nombres','mc-apellido1','mc-apellido2','mc-cedula','mc-expedida',
+   'mc-cel','mc-tel','mc-email','mc-dir','mc-barrio','mc-ciudad',
+   'mc-lnac','mc-obs','mc-lic','mc-cuenta','mc-ced-titular','mc-nombre-titular',
+   'mc-planilla','mc-arl','mc-eps','mc-pension','mc-ccfam',
+   'mc-salario','mc-motivo-retiro'
+  ].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+  ['mc-fnac','mc-ingreso','mc-vlic','mc-fverif','mc-fverif2',
+   'mc-antecedentes','mc-antecedentes2','mc-pjudicial','mc-pjudicial2',
+   'mc-fretiro','mc-arl-fafl','mc-arl-fpago','mc-eps-fafl','mc-eps-fpago',
+   'mc-pension-fafl','mc-pension-fpago','mc-ccfam-fafl','mc-ccfam-fpago','mc-planilla-fecha'
+  ].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+  switchTab('mc','datos');
+}
+
+function switchTab(prefix, tab) {
+  document.querySelectorAll(`#modal-${prefix === 'mc' ? 'conductor' : prefix} .ctab`).forEach((t,i) => {
+    const panels = ['datos','inf','seg','banco','docs'];
+    t.classList.toggle('active', panels[i] === tab);
+  });
+  document.querySelectorAll(`#modal-${prefix === 'mc' ? 'conductor' : prefix} .ctab-panel`).forEach(p => {
+    p.classList.toggle('active', p.id === prefix+'-panel-'+tab);
+  });
+}
+
+function previewDoc(inputId, previewId) {
+  const file = document.getElementById(inputId).files[0];
+  const prev = document.getElementById(previewId);
+  if (file) { prev.textContent = '✅ ' + file.name; prev.style.color = '#1a7a50'; }
 }
 
 async function guardarPropietario() {
@@ -1486,9 +1828,24 @@ async function ldConductores() {
   const tb = pg.querySelector('tbody');
   if (!tb) return;
   if (!data.length) { tb.innerHTML = '<tr><td colspan="9" class="tbl-empty"><div class="tbl-empty-icon">👤</div><div>Sin conductores. Crea el primero haciendo clic en "+ Nuevo conductor"</div></td></tr>'; return; }
+  const hoy = new Date().toISOString().split('T')[0];
   tb.innerHTML = data.map(c => {
-    const cls = c.estado==='activo'?'b-green':'b-red';
-    return `<tr><td>${c.cedula}</td><td><strong>${c.nombre}</strong></td><td>${c.telefono||'-'}</td><td>${c.licencia_numero||'-'}</td><td>${c.licencia_categoria||'-'}</td><td>${c.licencia_vencimiento||'-'}</td><td>${c.placa_asignada||'-'}</td><td><span class="badge ${cls}">${c.estado}</span></td><td><button class="act-btn">✏️</button></td></tr>`;
+    const cls = c.estado==='activo'?'b-green':c.estado==='inactivo'?'b-red':c.estado==='en_estudio'?'b-amber':'b-gray';
+    const licVenc = c.licencia_vencimiento||'-';
+    const licCls = c.licencia_vencimiento && c.licencia_vencimiento < hoy ? 'style="color:#e5534b;font-weight:600;"' : '';
+    const cel = c.celular || c.telefono || '-';
+    return `<tr>
+      <td>${c.cedula}</td>
+      <td><strong>${c.nombre}</strong><br><span style="font-size:10px;color:#6b7a99;">${c.ciudad||''}</span></td>
+      <td>${cel}</td>
+      <td>${c.licencia_numero||'-'}</td>
+      <td>${c.licencia_categoria||'-'}</td>
+      <td ${licCls}>${licVenc}</td>
+      <td>${c.placa_asignada||'-'}</td>
+      <td>${c.eps||'-'}</td>
+      <td><span class="badge ${cls}">${c.estado}</span></td>
+      <td><button class="act-btn" onclick="verConductor('${c.id}')">✏️</button></td>
+    </tr>`;
   }).join('');
 }
 
