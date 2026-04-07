@@ -848,7 +848,7 @@ tr:hover td{background:#f5f7fb;}
           </div>
           <div class="mrow mrow-2" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
             <div class="mfield"><label>Agencia por defecto</label><input id="rndc-agencia" placeholder="001" style="padding:7px 10px;border:1px solid #c8d0df;border-radius:5px;font-size:12px;width:100%;"></div>
-            <div class="mfield"><label>Modo</label><select id="rndc-modo" style="padding:7px 10px;border:1px solid #c8d0df;border-radius:5px;font-size:12px;width:100%;"><option value="produccion">Producción</option><option value="pruebas">Pruebas</option></select></div>
+            <div class="mfield"><label>Modo</label><select id="rndc-modo" style="padding:7px 10px;border:1px solid #c8d0df;border-radius:5px;font-size:12px;width:100%;"><option value="produccion">Producción</option><option value="pruebas">Pruebas (ministerio)</option><option value="simulacion">🧪 Simulación local</option></select></div>
           </div>
           <div style="display:flex;gap:10px;">
             <button onclick="guardarConfigRNDC()" style="padding:9px 22px;background:#2563a8;color:white;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">💾 Guardar configuración</button>
@@ -1677,6 +1677,20 @@ async function llamarEdgeRNDC(manifiesto) {
     showToast('⚠ Configura las credenciales RNDC primero (RNDC → Configuración)', false);
     return null;
   }
+
+  // MODO SIMULACIÓN — no llama al ministerio
+  if (config.modo === 'simulacion') {
+    await new Promise(r => setTimeout(r, 800)); // simular delay de red
+    const fakeAuth = 'SIM-' + Date.now().toString().slice(-8);
+    return {
+      ok: true,
+      autorizacion: fakeAuth,
+      mensaje: 'Simulación local — no enviado al ministerio',
+      simulado: true,
+    };
+  }
+
+  // MODO REAL — llama a la Edge Function → Ministerio
   const resp = await fetch(RNDC_EDGE, {
     method: 'POST',
     headers: {
@@ -1725,7 +1739,7 @@ async function enviarRNDCUno(id, numero) {
       rndc_autorizacion:  result.autorizacion,
       rndc_fecha_envio:   new Date().toISOString(),
     }).eq('id', id);
-    showToast('✅ Radicado en RNDC. Autorización: ' + result.autorizacion, true);
+    showToast((result.simulado ? '🧪 Simulado. Auth: ' : '✅ Radicado RNDC. Auth: ') + result.autorizacion, true);
   } else {
     await db.from('manifiestos').update({
       rndc_estado:       'error',
@@ -1840,9 +1854,21 @@ function guardarConfigRNDC() {
   };
   localStorage.setItem('rndc_config', JSON.stringify(cfg));
   showToast('✅ Configuración RNDC guardada', true);
-  document.getElementById('rndc-conn-badge').style.background = '#d3f4e7';
-  document.getElementById('rndc-conn-badge').style.color = '#1a7a50';
-  document.getElementById('rndc-conn-badge').textContent = '✓ RNDC configurado';
+
+  const simInfo = document.getElementById('rndc-sim-info');
+  const badge = document.getElementById('rndc-conn-badge');
+
+  if (cfg.modo === 'simulacion') {
+    simInfo.style.display = 'block';
+    badge.style.background = '#fef3d0';
+    badge.style.color = '#8a5a00';
+    badge.textContent = '🧪 Modo simulación';
+  } else {
+    simInfo.style.display = 'none';
+    badge.style.background = '#d3f4e7';
+    badge.style.color = '#1a7a50';
+    badge.textContent = '✓ RNDC configurado (' + (cfg.modo === 'pruebas' ? 'Pruebas' : 'Producción') + ')';
+  }
 }
 
 async function probarConexionRNDC() {
@@ -1904,10 +1930,24 @@ function cargarConfigRNDC() {
     if (cfg.url) document.getElementById('rndc-url').value = cfg.url;
     if (cfg.agencia) document.getElementById('rndc-agencia').value = cfg.agencia;
     if (cfg.modo) document.getElementById('rndc-modo').value = cfg.modo;
-    if (cfg.nit) {
-      document.getElementById('rndc-conn-badge').style.background = '#d3f4e7';
-      document.getElementById('rndc-conn-badge').style.color = '#1a7a50';
-      document.getElementById('rndc-conn-badge').textContent = '✓ RNDC configurado';
+
+    const badge = document.getElementById('rndc-conn-badge');
+    const simInfo = document.getElementById('rndc-sim-info');
+
+    if (cfg.modo === 'simulacion') {
+      if (simInfo) simInfo.style.display = 'block';
+      if (badge) {
+        badge.style.background = '#fef3d0';
+        badge.style.color = '#8a5a00';
+        badge.textContent = '🧪 Modo simulación';
+      }
+    } else if (cfg.nit) {
+      if (simInfo) simInfo.style.display = 'none';
+      if (badge) {
+        badge.style.background = '#d3f4e7';
+        badge.style.color = '#1a7a50';
+        badge.textContent = '✓ RNDC configurado (' + (cfg.modo === 'pruebas' ? 'Pruebas' : 'Producción') + ')';
+      }
     }
   } catch(e) {}
 }
